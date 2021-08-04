@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <title>WebGPU N-Body Simulation</title>
+   <meta name="description" content="">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+   <div>  
+      <h1>WebGPU N-Body Simulation</h1>
+      <label> Number of Particles: </label>
+      <input type="number" id="id-numParticles" value="1500">
+      <button type="button" id="id-btn">Update</button>
+      <div id="fps" style="font-weight: bold;"></div>
+      <canvas id="canvas-webgpu" width="640" height="640"></canvas>
+    </div>
+   <script src="main.bundle.js"></script>
+</body>
+</html>
