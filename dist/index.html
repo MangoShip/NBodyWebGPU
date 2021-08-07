@@ -5,16 +5,37 @@
    <title>WebGPU N-Body Simulation</title>
    <meta name="description" content="">
    <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="stylesheet" href="stylesheet.css" />
 </head>
 
 <body>
    <div>  
       <h1>WebGPU N-Body Simulation</h1>
-      <label> Number of Particles: </label>
-      <input type="number" id="id-numParticles" value="1500">
-      <button type="button" id="id-btn">Update</button>
-      <div id="fps" style="font-weight: bold;"></div>
+      <div class="body">
+         <text class="body"> Simulation Type: </text>
+         <text id="changeType" style="font-weight:bold">WebGPU</text>
+      </div>
+      <div class="body">
+         <button type=button class="typeButton">CPU(Single-Thread)</button>
+         <button type=button class="typeButton">CPU(Multi-Thread)</button>
+         <button type=button class="typeButton">WebGPU</button>
+      </div>
+      <div class="body">
+         <label> Number of Particles: </label>
+         <input type="number" id="numParticles" value="1500" min="0">
+      </div>
+      <div class="body">
+         <button type=button id="startButton">Start</button>
+      </div>
+      <div class="body" id="fps" style="font-weight: bold"></div>
       <canvas id="canvas-webgpu" width="640" height="640"></canvas>
+      <div class = "body">
+         <text> Current Simulation Type: </text>
+         <text id="currentType" style="font-weight: bold"></text>
+         <br>
+         <text> Current Number of Particles: </text>
+         <text id=currentNumParticles style="font-weight: bold"></text>
+      </div>
     </div>
    <script src="main.bundle.js"></script>
 </body>

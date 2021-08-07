@@ -16,12 +16,13 @@
       "esModuleInterop": true,
       "strict": true,
       "sourceMap": true,
-      "noImplicitAny": false
+      "noImplicitAny": false,
+      "strictNullChecks": false
     },
     "include": [
       "src/**/*.ts",
       "src/**/*.tsx",
-      "src/**/*.d.ts",
+      "src/**/*.d.ts", "src/main.js",
     ],
     "exclude": [
       "node_modules"

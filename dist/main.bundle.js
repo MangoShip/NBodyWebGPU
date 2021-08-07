@@ -10949,6 +10949,239 @@ const CheckWebGPU = () => {
 };
 
 
+/***/ }),
+
+/***/ "./src/mainWebGPU.ts":
+/*!***************************!*\
+  !*** ./src/mainWebGPU.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CreateParticlesWebGPU": () => (/* binding */ CreateParticlesWebGPU)
+/* harmony export */ });
+/* harmony import */ var _helper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helper */ "./src/helper.ts");
+/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
+/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
+    const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_0__.CheckWebGPU)();
+    if (checkgpu.includes('Your current browser does not support WebGPU!')) {
+        console.log(checkgpu);
+        throw ('Your current browser does not support WebGPU!');
+    }
+    const canvas = document.getElementById('canvas-webgpu');
+    const adapter = yield navigator.gpu.requestAdapter();
+    const device = yield adapter.requestDevice();
+    const context = canvas.getContext('gpupresent');
+    const format = 'bgra8unorm';
+    context.configure({
+        device: device,
+        format: format,
+    });
+    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_1__.default });
+    const renderPipeline = device.createRenderPipeline({
+        vertex: {
+            module: spriteShaderModule,
+            entryPoint: 'vert_main',
+            buffers: [
+                {
+                    // instanced particles buffer
+                    arrayStride: 4 * 4,
+                    stepMode: 'instance',
+                    attributes: [
+                        {
+                            // instance position
+                            shaderLocation: 0,
+                            offset: 0,
+                            format: 'float32x2',
+                        },
+                        {
+                            // instance velocity
+                            shaderLocation: 1,
+                            offset: 2 * 4,
+                            format: 'float32x2',
+                        },
+                    ],
+                },
+                {
+                    // vertex buffer
+                    arrayStride: 2 * 4,
+                    stepMode: 'vertex',
+                    attributes: [
+                        {
+                            // vertex positions
+                            shaderLocation: 2,
+                            offset: 0,
+                            format: 'float32x2',
+                        },
+                    ],
+                },
+            ],
+        },
+        fragment: {
+            module: spriteShaderModule,
+            entryPoint: 'frag_main',
+            targets: [
+                {
+                    format: format
+                },
+            ],
+        },
+        primitive: {
+            topology: 'point-list'
+        },
+    });
+    const computePipeline = device.createComputePipeline({
+        compute: {
+            module: device.createShaderModule({
+                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_2__.default,
+            }),
+            entryPoint: 'main',
+        }
+    });
+    const vertexBufferData = new Float32Array([
+        0.0, 0.0
+    ]);
+    const spriteVertexBuffer = device.createBuffer({
+        size: vertexBufferData.byteLength,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true,
+    });
+    new Float32Array(spriteVertexBuffer.getMappedRange()).set(vertexBufferData);
+    spriteVertexBuffer.unmap();
+    const simParams = {
+        r0: 0.05,
+        dt: 0.005000,
+        G: -10,
+        eps: 0.001,
+    };
+    const simParamBufferSize = 4 * Float32Array.BYTES_PER_ELEMENT;
+    const simParamBuffer = device.createBuffer({
+        size: simParamBufferSize,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    function updateSimParams() {
+        device.queue.writeBuffer(simParamBuffer, 0, new Float32Array([
+            simParams.r0,
+            simParams.dt,
+            simParams.G,
+            simParams.eps
+        ]));
+    }
+    updateSimParams();
+    const initialParticleData = new Float32Array(numParticles * 4);
+    for (let i = 0; i < numParticles; ++i) {
+        initialParticleData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
+        initialParticleData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
+        initialParticleData[4 * i + 2] = 0; // velX
+        initialParticleData[4 * i + 3] = 0; // velY
+    }
+    //console.log(initialParticleData);
+    const particleBuffers = new Array(2);
+    const particleBindGroups = new Array(2);
+    for (let i = 0; i < 2; i++) {
+        particleBuffers[i] = device.createBuffer({
+            size: initialParticleData.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
+            mappedAtCreation: true,
+        });
+        new Float32Array(particleBuffers[i].getMappedRange()).set(initialParticleData);
+        particleBuffers[i].unmap();
+    }
+    //console.log(particleBuffers);
+    for (let i = 0; i < 2; i++) {
+        particleBindGroups[i] = device.createBindGroup({
+            layout: computePipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: simParamBuffer
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: particleBuffers[i],
+                        offset: 0,
+                        size: initialParticleData.byteLength
+                    }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: particleBuffers[(i + 1) % 2],
+                        offset: 0,
+                        size: initialParticleData.byteLength
+                    }
+                }
+            ]
+        });
+    }
+    let updatePerformance = true;
+    var currentTime, previousTime;
+    currentTime = previousTime = performance.now();
+    let t = 0;
+    function frame() {
+        const textureView = context.getCurrentTexture().createView();
+        const renderPassDescriptor = {
+            colorAttachments: [
+                {
+                    view: textureView,
+                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    storeOp: 'store'
+                }
+            ]
+        };
+        const commandEncoder = device.createCommandEncoder();
+        {
+            const passEncoder = commandEncoder.beginComputePass();
+            passEncoder.setPipeline(computePipeline);
+            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
+            passEncoder.dispatch(Math.ceil(numParticles / 64));
+            passEncoder.endPass();
+        }
+        {
+            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            passEncoder.setPipeline(renderPipeline);
+            passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
+            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
+            passEncoder.draw(1, numParticles, 0, 0);
+            passEncoder.endPass();
+        }
+        device.queue.submit([commandEncoder.finish()]);
+        ++t;
+        currentTime = performance.now();
+        var elapsedTime = currentTime - previousTime;
+        previousTime = currentTime;
+        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+        if (updatePerformance) {
+            updatePerformance = false;
+            document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
+            setTimeout(() => {
+                updatePerformance = true;
+            }, 50); // update FPS every 50ms
+        }
+        requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+});
+
+
 /***/ })
 
 /******/ 	});
@@ -11029,9 +11262,7 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _helper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./helper */ "./src/helper.ts");
-/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
-/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
+/* harmony import */ var _mainWebGPU__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mainWebGPU */ "./src/mainWebGPU.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -11043,209 +11274,38 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 };
 
 
-
-
-const CreateParticles = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
-    const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_1__.CheckWebGPU)();
-    if (checkgpu.includes('Your current browser does not support WebGPU!')) {
-        console.log(checkgpu);
-        throw ('Your current browser does not support WebGPU!');
+const main = (simulationType = 'WebGPU', numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
+    // Update simulation type and number of particles texts
+    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentType').text(simulationType);
+    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumParticles').text(numParticles);
+    // Error check
+    if (numParticles <= 0) {
+        console.warn("Need at least 1 particle!");
+        return;
     }
-    const canvas = document.getElementById('canvas-webgpu');
-    const adapter = yield navigator.gpu.requestAdapter();
-    const device = yield adapter.requestDevice();
-    const context = canvas.getContext('gpupresent');
-    const format = 'bgra8unorm';
-    context.configure({
-        device: device,
-        format: format,
-    });
-    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__.default });
-    const renderPipeline = device.createRenderPipeline({
-        vertex: {
-            module: spriteShaderModule,
-            entryPoint: 'vert_main',
-            buffers: [
-                {
-                    // instanced particles buffer
-                    arrayStride: 4 * 4,
-                    stepMode: 'instance',
-                    attributes: [
-                        {
-                            // instance position
-                            shaderLocation: 0,
-                            offset: 0,
-                            format: 'float32x2',
-                        },
-                        {
-                            // instance velocity
-                            shaderLocation: 1,
-                            offset: 2 * 4,
-                            format: 'float32x2',
-                        },
-                    ],
-                },
-                {
-                    // vertex buffer
-                    arrayStride: 2 * 4,
-                    stepMode: 'vertex',
-                    attributes: [
-                        {
-                            // vertex positions
-                            shaderLocation: 2,
-                            offset: 0,
-                            format: 'float32x2',
-                        },
-                    ],
-                },
-            ],
-        },
-        fragment: {
-            module: spriteShaderModule,
-            entryPoint: 'frag_main',
-            targets: [
-                {
-                    format: format
-                },
-            ],
-        },
-        primitive: {
-            topology: 'point-list'
-        },
-    });
-    const computePipeline = device.createComputePipeline({
-        compute: {
-            module: device.createShaderModule({
-                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__.default,
-            }),
-            entryPoint: 'main',
-        }
-    });
-    const vertexBufferData = new Float32Array([
-        0.0, 0.0
-    ]);
-    const spriteVertexBuffer = device.createBuffer({
-        size: vertexBufferData.byteLength,
-        usage: GPUBufferUsage.VERTEX,
-        mappedAtCreation: true,
-    });
-    new Float32Array(spriteVertexBuffer.getMappedRange()).set(vertexBufferData);
-    spriteVertexBuffer.unmap();
-    const simParams = {
-        r0: 0.05,
-        dt: 0.005000,
-        G: -10,
-        eps: 0.001,
-    };
-    const simParamBufferSize = 4 * Float32Array.BYTES_PER_ELEMENT;
-    const simParamBuffer = device.createBuffer({
-        size: simParamBufferSize,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-    function updateSimParams() {
-        device.queue.writeBuffer(simParamBuffer, 0, new Float32Array([
-            simParams.r0,
-            simParams.dt,
-            simParams.G,
-            simParams.eps
-        ]));
+    if (simulationType == 'WebGPU') {
+        console.log("Launching WebGPU with " + numParticles + " particles");
+        (0,_mainWebGPU__WEBPACK_IMPORTED_MODULE_1__.CreateParticlesWebGPU)(numParticles);
     }
-    updateSimParams();
-    //const numParticles = 1500;
-    const initialParticleData = new Float32Array(numParticles * 4);
-    for (let i = 0; i < numParticles; ++i) {
-        initialParticleData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
-        initialParticleData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
-        initialParticleData[4 * i + 2] = 0; // velX
-        initialParticleData[4 * i + 3] = 0; // velY
+    else if (simulationType == 'CPU(Single-Thread)') {
+        console.log("Launching CPU(Single-Thread) with " + numParticles + " particles");
     }
-    //console.log(initialParticleData);
-    const particleBuffers = new Array(2);
-    const particleBindGroups = new Array(2);
-    for (let i = 0; i < 2; i++) {
-        particleBuffers[i] = device.createBuffer({
-            size: initialParticleData.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
-            mappedAtCreation: true,
-        });
-        new Float32Array(particleBuffers[i].getMappedRange()).set(initialParticleData);
-        particleBuffers[i].unmap();
+    else {
+        console.log("Launching CPU(Multi-Thread) with " + numParticles + " particles");
     }
-    //console.log(particleBuffers);
-    for (let i = 0; i < 2; i++) {
-        particleBindGroups[i] = device.createBindGroup({
-            layout: computePipeline.getBindGroupLayout(0),
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: simParamBuffer
-                    }
-                },
-                {
-                    binding: 1,
-                    resource: {
-                        buffer: particleBuffers[i],
-                        offset: 0,
-                        size: initialParticleData.byteLength
-                    }
-                },
-                {
-                    binding: 2,
-                    resource: {
-                        buffer: particleBuffers[(i + 1) % 2],
-                        offset: 0,
-                        size: initialParticleData.byteLength
-                    }
-                }
-            ]
-        });
-    }
-    var currentTime, previousTime;
-    currentTime = previousTime = performance.now();
-    let t = 0;
-    function frame() {
-        const textureView = context.getCurrentTexture().createView();
-        const renderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    storeOp: 'store'
-                }
-            ]
-        };
-        const commandEncoder = device.createCommandEncoder();
-        {
-            const passEncoder = commandEncoder.beginComputePass();
-            passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(Math.ceil(numParticles / 64));
-            passEncoder.endPass();
-        }
-        {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-            passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
-            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-            passEncoder.draw(1, numParticles, 0, 0);
-            passEncoder.endPass();
-        }
-        device.queue.submit([commandEncoder.finish()]);
-        ++t;
-        currentTime = performance.now();
-        var elapsedTime = currentTime - previousTime;
-        previousTime = currentTime;
-        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
-        document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
-        requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
 });
-CreateParticles();
-jquery__WEBPACK_IMPORTED_MODULE_0___default()('#id-btn').on('click', () => {
-    const numParticles = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#id-numParticles').val();
-    CreateParticles(numParticles);
+main();
+// Changes Text for indicate next simulation type
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('.typeButton').on('click', (event) => {
+    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#changeType').text(event.target.innerText);
+});
+// Restarts main with new simulation type and particle number.
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('#startButton').on('click', () => {
+    // Read simulation type and number of particles
+    var simulationType = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#changeType').text();
+    var numParticles = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numParticles').val();
+    // Launch main with new simulation type and number of particles
+    main(simulationType, numParticles);
 });
 
 })();
