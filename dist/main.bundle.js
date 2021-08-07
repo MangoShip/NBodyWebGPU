@@ -11283,6 +11283,7 @@ const main = (simulationType = 'WebGPU', numParticles = 1500) => __awaiter(void 
         console.warn("Need at least 1 particle!");
         return;
     }
+    // Launch simulation
     if (simulationType == 'WebGPU') {
         console.log("Launching WebGPU with " + numParticles + " particles");
         (0,_mainWebGPU__WEBPACK_IMPORTED_MODULE_1__.CreateParticlesWebGPU)(numParticles);
