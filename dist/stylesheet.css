@@ -1,3 +1,11 @@
 .body {
     margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    outline-style: solid;
+    width: 640px;
+}
+
+.numThreads {
+    visibility: hidden;
 }

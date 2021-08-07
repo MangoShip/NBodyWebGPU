@@ -11,30 +11,30 @@
 <body>
    <div>  
       <h1>WebGPU N-Body Simulation</h1>
-      <div class="body">
-         <text class="body"> Simulation Type: </text>
-         <text id="changeType" style="font-weight:bold"></text>
-      </div>
-      <div class="body">
-         <button type=button class="typeButton">CPU(Single-Thread)</button>
-         <button type=button class="typeButton">CPU(Multi-Thread)</button>
-         <button type=button class="typeButton">WebGPU</button>
-      </div>
-      <div class="body">
-         <label> Number of Particles: </label>
-         <input type="number" id="numParticles" min="0">
-      </div>
-      <div class="body">
-         <button type=button id="startButton">Start</button>
-      </div>
-      <div class="body" id="fps" style="font-weight: bold"></div>
-      <canvas id="canvas-webgpu" width="640" height="640"></canvas>
       <div class = "body">
-         <text> Current Simulation Type: </text>
+         <label> Current Simulation Type: </label>
          <text id="currentType" style="font-weight: bold"></text>
          <br>
-         <text> Current Number of Particles: </text>
+         <label> Current Number of Particles: </label>
          <text id=currentNumParticles style="font-weight: bold"></text>
+         <br>
+         <label> Current Number of Threads: </label>
+         <text id=currentNumThreads style="font-weight: bold"></text>
+         <div id="fps" style="font-weight: bold"></div>
+      </div>
+      <canvas id="canvas-webgpu" width="640" height="640"></canvas>
+      <div class="body" id="updateSimulation">
+         <label> Simulation Type: </label>
+         <text id="changeType" style="font-weight:bold"></text>
+         <input type="radio" name="typeButton" value="CPU">CPU</button>
+         <input type="radio" name="typeButton" value="WebGPU" checked>WebGPU</button>
+         <br>
+         <label> Number of Particles: </label>
+         <input type="number" id="numParticles" min="0" value="1500">
+         <label class="numThreads"> Number of Threads: </label>
+         <input type="number" class="numThreads" id="numThreads" min="1" value="1">            
+         <br>
+         <button type=button id="updateButton">Update</button>
       </div>
     </div>
    <script src="main.bundle.js"></script>

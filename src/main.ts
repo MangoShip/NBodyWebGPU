@@ -1,44 +1,67 @@
 import $ from 'jquery';
-import { ContextExclusionPlugin } from 'webpack';
 import { CreateParticlesWebGPU } from './mainWebGPU';
 
-const main = async (simulationType='WebGPU', numParticles=1500) => {
-    // Update simulation type and number of particles texts
-    $('#currentType').text(simulationType);
-    $('#currentNumParticles').text(numParticles);
-
-    // Error check
-    if (numParticles <= 0) {
+const main = async (numParticles=1500) => {
+    // Error check on numParticles
+    if (numParticles <= 0 || numParticles == null) {
         console.warn("Need at least 1 particle!");
         return;
     }
 
+    var numThreads = 0;
+    
     // Launch simulation
-    if (simulationType == 'WebGPU') {
+    if ($('input[name=typeButton]:checked').val() == "CPU"){
+        numThreads = $('#numThreads').val() as number;
+        console.log("Launching CPU with " + numParticles + " particles and " + numThreads + " threads");
+    }
+    else if ($('input[name=typeButton]:checked').val() == "WebGPU"){
         console.log("Launching WebGPU with " + numParticles + " particles");
         CreateParticlesWebGPU(numParticles);
     }
-    else if (simulationType == 'CPU(Single-Thread)'){
-        console.log("Launching CPU(Single-Thread) with " + numParticles + " particles");
+    else { // No selection on simulation type.
+        console.warn("Choose simulation type");
+        return;
+    }
+
+    // Update simulation type and number of particles texts
+    $('#currentType').text($('input[name=typeButton]:checked').val() as string);
+    $('#currentNumParticles').text(numParticles);
+
+    if(numThreads == 0) {
+        $('#currentNumThreads').text("");
     }
     else {
-        console.log("Launching CPU(Multi-Thread) with " + numParticles + " particles");
+        $('#currentNumThreads').text(numThreads);
     }
+    
 }
 
 main();
 
-// Changes Text for indicate next simulation type
-$('.typeButton').on('click', (event) => {
-    $('#changeType').text(event.target.innerText); 
-});
+// Make number of threads visible when "CPU(Multi-Threads") has been pressed
+$('input[name=typeButton]:radio').change(function(){
+    // Read current value of radio button
+    var buttonType = $('input[name=typeButton]:checked').val();
+    if(buttonType == "CPU") {
+        var elements = document.querySelectorAll<HTMLElement>('.numThreads');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.visibility = "visible"; 
+        }
+    }
+    else {
+        var elements = document.querySelectorAll<HTMLElement>('.numThreads');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.visibility = "hidden"; 
+        }
+    }
+})
 
 // Restarts main with new simulation type and particle number.
-$('#startButton').on('click', () => {
-    // Read simulation type and number of particles
-    var simulationType = $('#changeType').text();
+$('#updateButton').on('click', () => {
+    // Read new number of particles
     var numParticles = $('#numParticles').val() as number;
 
-    // Launch main with new simulation type and number of particles
-    main(simulationType, numParticles);
+    // Launch main with new number of particles
+    main(numParticles);
 });

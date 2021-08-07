@@ -11274,39 +11274,60 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 };
 
 
-const main = (simulationType = 'WebGPU', numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
-    // Update simulation type and number of particles texts
-    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentType').text(simulationType);
-    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumParticles').text(numParticles);
-    // Error check
-    if (numParticles <= 0) {
+const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
+    // Error check on numParticles
+    if (numParticles <= 0 || numParticles == null) {
         console.warn("Need at least 1 particle!");
         return;
     }
+    var numThreads = 0;
     // Launch simulation
-    if (simulationType == 'WebGPU') {
+    if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "CPU") {
+        numThreads = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numThreads').val();
+        console.log("Launching CPU with " + numParticles + " particles and " + numThreads + " threads");
+    }
+    else if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "WebGPU") {
         console.log("Launching WebGPU with " + numParticles + " particles");
         (0,_mainWebGPU__WEBPACK_IMPORTED_MODULE_1__.CreateParticlesWebGPU)(numParticles);
     }
-    else if (simulationType == 'CPU(Single-Thread)') {
-        console.log("Launching CPU(Single-Thread) with " + numParticles + " particles");
+    else { // No selection on simulation type.
+        console.warn("Choose simulation type");
+        return;
+    }
+    // Update simulation type and number of particles texts
+    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentType').text(jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val());
+    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumParticles').text(numParticles);
+    if (numThreads == 0) {
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumThreads').text("");
     }
     else {
-        console.log("Launching CPU(Multi-Thread) with " + numParticles + " particles");
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumThreads').text(numThreads);
     }
 });
 main();
-// Changes Text for indicate next simulation type
-jquery__WEBPACK_IMPORTED_MODULE_0___default()('.typeButton').on('click', (event) => {
-    jquery__WEBPACK_IMPORTED_MODULE_0___default()('#changeType').text(event.target.innerText);
+// Make number of threads visible when "CPU(Multi-Threads") has been pressed
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').change(function () {
+    // Read current value of radio button
+    var buttonType = jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val();
+    if (buttonType == "CPU") {
+        var elements = document.querySelectorAll('.numThreads');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.visibility = "visible";
+        }
+    }
+    else {
+        var elements = document.querySelectorAll('.numThreads');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.visibility = "hidden";
+        }
+    }
 });
 // Restarts main with new simulation type and particle number.
-jquery__WEBPACK_IMPORTED_MODULE_0___default()('#startButton').on('click', () => {
-    // Read simulation type and number of particles
-    var simulationType = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#changeType').text();
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
+    // Read new number of particles
     var numParticles = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numParticles').val();
-    // Launch main with new simulation type and number of particles
-    main(simulationType, numParticles);
+    // Launch main with new number of particles
+    main(numParticles);
 });
 
 })();
