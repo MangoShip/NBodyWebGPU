@@ -1,6 +1,9 @@
+import $ from 'jquery';
 import { CheckWebGPU } from './helper';
 import spriteWGSL from './sprite.wgsl';
 import updateSpriteWGSL from './updateSprite.wgsl';
+
+var contextIsConfigured;
 
 export const CreateParticlesWebGPU = async (numParticles=1500) => {
     const checkgpu = CheckWebGPU();
@@ -9,16 +12,25 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         throw('Your current browser does not support WebGPU!');
     }
 
-    const canvas = document.getElementById('canvas-webgpu') as HTMLCanvasElement;        
+    const canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement; 
+    const canvasCPU = document.getElementById('canvasCPU');
+
+    // Switch canvas
+    canvasCPU.style.display = "none";
+    canvasWebGPU.style.display = "block";
+  
     const adapter = await navigator.gpu.requestAdapter() as GPUAdapter;       
     const device = await adapter.requestDevice() as GPUDevice;
-    const context = canvas.getContext('gpupresent') as GPUPresentationContext;
+    const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
 
     const format = 'bgra8unorm';
+
     context.configure({
         device: device,
         format: format,
     });
+
+    contextIsConfigured = true;
 
     const spriteShaderModule = device.createShaderModule({ code: spriteWGSL });
     const renderPipeline = device.createRenderPipeline({
@@ -185,56 +197,62 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
 
     let t = 0;
     function frame() {
-        const textureView = context.getCurrentTexture().createView();
-        const renderPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
-                    storeOp: 'store'
-                }
-            ]
+        if(contextIsConfigured){ // only update if context has been configured
+            const textureView = context.getCurrentTexture().createView();
+            const renderPassDescriptor: GPURenderPassDescriptor = {
+                colorAttachments: [
+                    {
+                        view: textureView,
+                        loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
+                        storeOp: 'store'
+                    }
+                ]
+            }
+            
+            const commandEncoder = device.createCommandEncoder();
+            {
+                const passEncoder = commandEncoder.beginComputePass();
+                passEncoder.setPipeline(computePipeline);
+                passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
+                passEncoder.dispatch(Math.ceil(numParticles / 64));
+                passEncoder.endPass();
+            }
+            {
+                const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+                passEncoder.setPipeline(renderPipeline);
+                passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
+                passEncoder.setVertexBuffer(1, spriteVertexBuffer);
+                passEncoder.draw(1, numParticles, 0, 0);
+                passEncoder.endPass();      
+            }
+            device.queue.submit([commandEncoder.finish()]); 
+            ++t;
+
+            currentTime = performance.now();
+            var elapsedTime = currentTime - previousTime;
+            previousTime = currentTime;
+            var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+            
+            if(updatePerformance) {
+                updatePerformance = false;
+
+                document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
+
+                setTimeout(() => {
+                    updatePerformance = true;
+                }, 50); // update FPS every 50ms
+            }
+            requestAnimationFrame(frame);
         }
-        
-        const commandEncoder = device.createCommandEncoder();
-        {
-            const passEncoder = commandEncoder.beginComputePass();
-            passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(Math.ceil(numParticles / 64));
-            passEncoder.endPass();
-        }
-        {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-            passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-            passEncoder.draw(1, numParticles, 0, 0);
-            passEncoder.endPass();      
-        }
-        device.queue.submit([commandEncoder.finish()]); 
-        ++t;
-
-        currentTime = performance.now();
-        var elapsedTime = currentTime - previousTime;
-        previousTime = currentTime;
-        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
-        
-        if(updatePerformance) {
-            updatePerformance = false;
-
-            document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
-
-            setTimeout(() => {
-                updatePerformance = true;
-            }, 50); // update FPS every 50ms
-        }
-
-
-
-        requestAnimationFrame(frame);
-        
     }
     requestAnimationFrame(frame);
 }
 
+// Delte canvas context for redrawing canvas
+$('#updateButton').on('click', () => {
+    var canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement;
+    var context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
+    
+    contextIsConfigured = false;
+    context.unconfigure();
+});

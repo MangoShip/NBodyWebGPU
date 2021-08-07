@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { CreateParticlesWebGPU } from './mainWebGPU';
+import { CreateParticlesCPU } from './mainCPU.js';
 
 const main = async (numParticles=1500) => {
     // Error check on numParticles
@@ -14,6 +15,7 @@ const main = async (numParticles=1500) => {
     if ($('input[name=typeButton]:checked').val() == "CPU"){
         numThreads = $('#numThreads').val() as number;
         console.log("Launching CPU with " + numParticles + " particles and " + numThreads + " threads");
+        CreateParticlesCPU(numParticles, numThreads);
     }
     else if ($('input[name=typeButton]:checked').val() == "WebGPU"){
         console.log("Launching WebGPU with " + numParticles + " particles");
@@ -62,6 +64,10 @@ $('#updateButton').on('click', () => {
     // Read new number of particles
     var numParticles = $('#numParticles').val() as number;
 
-    // Launch main with new number of particles
-    main(numParticles);
+    // Add a delay to clear up canvas first
+    //setTimeout(function() {
+        // Launch main with new number of particles
+        main(numParticles);
+    //}, 1000);
+    
 });

@@ -10962,9 +10962,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "CreateParticlesWebGPU": () => (/* binding */ CreateParticlesWebGPU)
 /* harmony export */ });
-/* harmony import */ var _helper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./helper */ "./src/helper.ts");
-/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
-/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _helper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./helper */ "./src/helper.ts");
+/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
+/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10977,22 +10979,29 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
+
+var contextIsConfigured;
 const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
-    const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_0__.CheckWebGPU)();
+    const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_1__.CheckWebGPU)();
     if (checkgpu.includes('Your current browser does not support WebGPU!')) {
         console.log(checkgpu);
         throw ('Your current browser does not support WebGPU!');
     }
-    const canvas = document.getElementById('canvas-webgpu');
+    const canvasWebGPU = document.getElementById('canvasWebGPU');
+    const canvasCPU = document.getElementById('canvasCPU');
+    // Switch canvas
+    canvasCPU.style.display = "none";
+    canvasWebGPU.style.display = "block";
     const adapter = yield navigator.gpu.requestAdapter();
     const device = yield adapter.requestDevice();
-    const context = canvas.getContext('gpupresent');
+    const context = canvasWebGPU.getContext('gpupresent');
     const format = 'bgra8unorm';
     context.configure({
         device: device,
         format: format,
     });
-    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_1__.default });
+    contextIsConfigured = true;
+    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__.default });
     const renderPipeline = device.createRenderPipeline({
         vertex: {
             module: spriteShaderModule,
@@ -11048,7 +11057,7 @@ const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0,
     const computePipeline = device.createComputePipeline({
         compute: {
             module: device.createShaderModule({
-                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_2__.default,
+                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__.default,
             }),
             entryPoint: 'main',
         }
@@ -11137,50 +11146,103 @@ const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0,
     currentTime = previousTime = performance.now();
     let t = 0;
     function frame() {
-        const textureView = context.getCurrentTexture().createView();
-        const renderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    storeOp: 'store'
-                }
-            ]
-        };
-        const commandEncoder = device.createCommandEncoder();
-        {
-            const passEncoder = commandEncoder.beginComputePass();
-            passEncoder.setPipeline(computePipeline);
-            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(Math.ceil(numParticles / 64));
-            passEncoder.endPass();
+        if (contextIsConfigured) { // only update if context has been configured
+            const textureView = context.getCurrentTexture().createView();
+            const renderPassDescriptor = {
+                colorAttachments: [
+                    {
+                        view: textureView,
+                        loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                        storeOp: 'store'
+                    }
+                ]
+            };
+            const commandEncoder = device.createCommandEncoder();
+            {
+                const passEncoder = commandEncoder.beginComputePass();
+                passEncoder.setPipeline(computePipeline);
+                passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
+                passEncoder.dispatch(Math.ceil(numParticles / 64));
+                passEncoder.endPass();
+            }
+            {
+                const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+                passEncoder.setPipeline(renderPipeline);
+                passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
+                passEncoder.setVertexBuffer(1, spriteVertexBuffer);
+                passEncoder.draw(1, numParticles, 0, 0);
+                passEncoder.endPass();
+            }
+            device.queue.submit([commandEncoder.finish()]);
+            ++t;
+            currentTime = performance.now();
+            var elapsedTime = currentTime - previousTime;
+            previousTime = currentTime;
+            var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+            if (updatePerformance) {
+                updatePerformance = false;
+                document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
+                setTimeout(() => {
+                    updatePerformance = true;
+                }, 50); // update FPS every 50ms
+            }
+            requestAnimationFrame(frame);
         }
-        {
-            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-            passEncoder.setPipeline(renderPipeline);
-            passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
-            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-            passEncoder.draw(1, numParticles, 0, 0);
-            passEncoder.endPass();
-        }
-        device.queue.submit([commandEncoder.finish()]);
-        ++t;
-        currentTime = performance.now();
-        var elapsedTime = currentTime - previousTime;
-        previousTime = currentTime;
-        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
-        if (updatePerformance) {
-            updatePerformance = false;
-            document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
-            setTimeout(() => {
-                updatePerformance = true;
-            }, 50); // update FPS every 50ms
-        }
-        requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
 });
+// Delte canvas context for redrawing canvas
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
+    var canvasWebGPU = document.getElementById('canvasWebGPU');
+    var context = canvasWebGPU.getContext('gpupresent');
+    contextIsConfigured = false;
+    context.unconfigure();
+});
 
+
+/***/ }),
+
+/***/ "./src/mainCPU.js":
+/*!************************!*\
+  !*** ./src/mainCPU.js ***!
+  \************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CreateParticlesCPU": () => (/* binding */ CreateParticlesCPU)
+/* harmony export */ });
+
+const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
+    
+    const canvasWebGPU = document.getElementById('canvasWebGPU');
+    const canvasCPU = document.getElementById('canvasCPU');
+    const context = canvasCPU.getContext("2d");
+
+    // Switch canvas
+    canvasWebGPU.style.display = "none";
+    canvasCPU.style.display = "block";
+
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
+
+    const initialParticleData = new Float32Array(numParticles * 4);
+    for (let i = 0; i < numParticles; ++i) {
+        initialParticleData[4 * i + 0] = Math.random() * canvasCPU.width; // posX
+        initialParticleData[4 * i + 1] = Math.random() * canvasCPU.height; // posY
+        initialParticleData[4 * i + 2] = 0; // velX
+        initialParticleData[4 * i + 3] = 0; // velY
+
+        // Draw particle to canvas
+        context.fillStyle = "white"
+        context.fillRect(initialParticleData[4 * i + 0], initialParticleData[4 * i + 1], 1, 1);
+    }
+
+
+
+
+}
 
 /***/ })
 
@@ -11263,6 +11325,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _mainWebGPU__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mainWebGPU */ "./src/mainWebGPU.ts");
+/* harmony import */ var _mainCPU_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mainCPU.js */ "./src/mainCPU.js");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -11272,6 +11335,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
@@ -11285,6 +11349,7 @@ const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function
     if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "CPU") {
         numThreads = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numThreads').val();
         console.log("Launching CPU with " + numParticles + " particles and " + numThreads + " threads");
+        (0,_mainCPU_js__WEBPACK_IMPORTED_MODULE_2__.CreateParticlesCPU)(numParticles, numThreads);
     }
     else if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "WebGPU") {
         console.log("Launching WebGPU with " + numParticles + " particles");
@@ -11326,8 +11391,11 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').ch
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
     // Read new number of particles
     var numParticles = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numParticles').val();
+    // Add a delay to clear up canvas first
+    //setTimeout(function() {
     // Launch main with new number of particles
     main(numParticles);
+    //}, 1000);
 });
 
 })();
