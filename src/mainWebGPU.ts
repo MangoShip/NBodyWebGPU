@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { CheckWebGPU } from './helper';
+import { simParams } from './main';
 import spriteWGSL from './sprite.wgsl';
 import updateSpriteWGSL from './updateSprite.wgsl';
 
@@ -143,8 +144,6 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         initialParticleData[4 * i + 3] = 0; // velY
     }
 
-    //console.log(initialParticleData);
-
     const particleBuffers: GPUBuffer[] = new Array(2);
     const particleBindGroups: GPUBindGroup[] = new Array(2);
     for (let i = 0; i < 2; i++) {
@@ -158,8 +157,6 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         );
         particleBuffers[i].unmap();
     }
-
-    //console.log(particleBuffers);
 
     for (let i = 0; i < 2; i++) {
         particleBindGroups[i] = device.createBindGroup({
@@ -191,59 +188,61 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         });
     }
 
+    // Variables for performance measurement (fps)
     let updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
 
     let t = 0;
     function frame() {
-        if(contextIsConfigured){ // only update if context has been configured
-            const textureView = context.getCurrentTexture().createView();
-            const renderPassDescriptor: GPURenderPassDescriptor = {
-                colorAttachments: [
-                    {
-                        view: textureView,
-                        loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
-                        storeOp: 'store'
-                    }
-                ]
-            }
-            
-            const commandEncoder = device.createCommandEncoder();
-            {
-                const passEncoder = commandEncoder.beginComputePass();
-                passEncoder.setPipeline(computePipeline);
-                passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-                passEncoder.dispatch(Math.ceil(numParticles / 64));
-                passEncoder.endPass();
-            }
-            {
-                const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-                passEncoder.setPipeline(renderPipeline);
-                passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-                passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-                passEncoder.draw(1, numParticles, 0, 0);
-                passEncoder.endPass();      
-            }
-            device.queue.submit([commandEncoder.finish()]); 
-            ++t;
+        // Return if context is not configured;
+        if(!contextIsConfigured) return;
 
-            currentTime = performance.now();
-            var elapsedTime = currentTime - previousTime;
-            previousTime = currentTime;
-            var framePerSecond = Math.round(1 / (elapsedTime / 1000));
-            
-            if(updatePerformance) {
-                updatePerformance = false;
-
-                document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
-
-                setTimeout(() => {
-                    updatePerformance = true;
-                }, 50); // update FPS every 50ms
-            }
-            requestAnimationFrame(frame);
+        const textureView = context.getCurrentTexture().createView();
+        const renderPassDescriptor: GPURenderPassDescriptor = {
+            colorAttachments: [
+                {
+                    view: textureView,
+                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
+                    storeOp: 'store'
+                }
+            ]
         }
+            
+        const commandEncoder = device.createCommandEncoder();
+        {
+            const passEncoder = commandEncoder.beginComputePass();
+            passEncoder.setPipeline(computePipeline);
+            passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
+            passEncoder.dispatch(Math.ceil(numParticles / 64));
+            passEncoder.endPass();
+        }
+        {
+            const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+            passEncoder.setPipeline(renderPipeline);
+            passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
+            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
+            passEncoder.draw(1, numParticles, 0, 0);
+            passEncoder.endPass();      
+        }
+        device.queue.submit([commandEncoder.finish()]); 
+        ++t;
+
+        currentTime = performance.now();
+        var elapsedTime = currentTime - previousTime;
+        previousTime = currentTime;
+        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+            
+        if(updatePerformance) {
+            updatePerformance = false;
+
+            document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
+
+            setTimeout(() => {
+                updatePerformance = true;
+            }, 50); // update FPS every 50ms
+        }
+        requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
 }
@@ -255,4 +254,5 @@ $('#updateButton').on('click', () => {
     
     contextIsConfigured = false;
     context.unconfigure();
+    console.log("WEBGPU " + contextIsConfigured);
 });

@@ -23,7 +23,6 @@ fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
   var vVel = particlesA.particles[index].vel;
 
   var pos : vec2<f32>;
-  var vel : vec2<f32>;
 
   var distance : vec2<f32>;
   var acc = vec2<f32>(0.0, 0.0);
@@ -34,7 +33,6 @@ fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
     }
 
     pos = particlesA.particles[i].pos.xy;
-    vel = particlesA.particles[i].vel.xy;
 
     distance = vPos - pos;
 

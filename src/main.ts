@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import { CreateParticlesWebGPU } from './mainWebGPU';
-import { CreateParticlesCPU } from './mainCPU.js';
+import { CreateParticlesCPU } from './mainCPU';
 
 const main = async (numParticles=1500) => {
     // Error check on numParticles
@@ -41,6 +41,27 @@ const main = async (numParticles=1500) => {
 
 main();
 
+// Variables used for computation
+export const simParams = {
+    r0: 0.05,
+    dt: 0.005000,
+    G: -10,
+    eps: 0.001,
+}
+
+/*export var contextIsConfigured = () => {
+    var value = true;
+
+    Object.defineProperty(this, 'value', {
+        get: function() {
+            return value;
+        },
+        set: function(newValue) {
+            value = newValue;
+        }
+    })
+};*/
+
 // Make number of threads visible when "CPU(Multi-Threads") has been pressed
 $('input[name=typeButton]:radio').change(function(){
     // Read current value of radio button
@@ -64,10 +85,7 @@ $('#updateButton').on('click', () => {
     // Read new number of particles
     var numParticles = $('#numParticles').val() as number;
 
-    // Add a delay to clear up canvas first
     //setTimeout(function() {
-        // Launch main with new number of particles
         main(numParticles);
     //}, 1000);
-    
 });
