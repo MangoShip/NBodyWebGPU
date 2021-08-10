@@ -192,6 +192,8 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
     let updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
+    var totalFramePerSecond = 0;
+    var frameCounter = 0;
 
     let t = 0;
     function frame() {
@@ -232,11 +234,18 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         var elapsedTime = currentTime - previousTime;
         previousTime = currentTime;
         var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+        totalFramePerSecond += framePerSecond;
+        frameCounter++;
             
         if(updatePerformance) {
             updatePerformance = false;
 
-            document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
+            let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+            
+            frameCounter = 0;
+            totalFramePerSecond = 0;
+
+            document.getElementById("fps")!.innerHTML = `FPS:  ${averageFramePerSecond}`;
 
             setTimeout(() => {
                 updatePerformance = true;
@@ -254,5 +263,4 @@ $('#updateButton').on('click', () => {
     
     gpuContextIsConfigured = false;
     context.unconfigure();
-    console.log("WEBGPU " + gpuContextIsConfigured);
 });

@@ -45,11 +45,12 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     let updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
+    var totalFramePerSecond = 0;
+    var frameCounter = 0;
 
     let t = 0;
     // Update Particles
     function frame() {
-        console.log(t);
         // Return if context is not configured;
         if(!cpuContextIsConfigured) return;
 
@@ -113,11 +114,18 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
         var elapsedTime = currentTime - previousTime;
         previousTime = currentTime;
         var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+        totalFramePerSecond += framePerSecond;
+        frameCounter++;
             
         if(updatePerformance) {
             updatePerformance = false;
 
-            document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
+            let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+            
+            frameCounter = 0;
+            totalFramePerSecond = 0;
+
+            document.getElementById("fps")!.innerHTML = `FPS:  ${averageFramePerSecond}`;
 
             setTimeout(() => {
                 updatePerformance = true;

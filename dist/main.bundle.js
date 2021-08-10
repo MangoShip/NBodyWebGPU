@@ -11038,9 +11038,10 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').ch
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
     // Read new number of particles
     var numParticles = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numParticles').val();
+    // Delay before calling main to make sure canvas gets cleared first
     setTimeout(function () {
         main(numParticles);
-    }, 100);
+    }, 100); // Call main after 100 ms
 });
 
 
@@ -11106,10 +11107,11 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     let updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
+    var totalFramePerSecond = 0;
+    var frameCounter = 0;
     let t = 0;
     // Update Particles
     function frame() {
-        console.log(t);
         // Return if context is not configured;
         if (!cpuContextIsConfigured)
             return;
@@ -11158,9 +11160,14 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         var elapsedTime = currentTime - previousTime;
         previousTime = currentTime;
         var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+        totalFramePerSecond += framePerSecond;
+        frameCounter++;
         if (updatePerformance) {
             updatePerformance = false;
-            document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
+            let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+            frameCounter = 0;
+            totalFramePerSecond = 0;
+            document.getElementById("fps").innerHTML = `FPS:  ${averageFramePerSecond}`;
             setTimeout(() => {
                 updatePerformance = true;
             }, 50); // update FPS every 50ms
@@ -11370,6 +11377,8 @@ const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0,
     let updatePerformance = true;
     var currentTime, previousTime;
     currentTime = previousTime = performance.now();
+    var totalFramePerSecond = 0;
+    var frameCounter = 0;
     let t = 0;
     function frame() {
         // Return if context is not configured;
@@ -11407,9 +11416,14 @@ const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0,
         var elapsedTime = currentTime - previousTime;
         previousTime = currentTime;
         var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+        totalFramePerSecond += framePerSecond;
+        frameCounter++;
         if (updatePerformance) {
             updatePerformance = false;
-            document.getElementById("fps").innerHTML = `FPS:  ${framePerSecond}`;
+            let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+            frameCounter = 0;
+            totalFramePerSecond = 0;
+            document.getElementById("fps").innerHTML = `FPS:  ${averageFramePerSecond}`;
             setTimeout(() => {
                 updatePerformance = true;
             }, 50); // update FPS every 50ms
@@ -11424,7 +11438,6 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () =>
     var context = canvasWebGPU.getContext('gpupresent');
     gpuContextIsConfigured = false;
     context.unconfigure();
-    console.log("WEBGPU " + gpuContextIsConfigured);
 });
 
 
