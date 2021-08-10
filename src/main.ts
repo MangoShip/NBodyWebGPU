@@ -49,19 +49,6 @@ export const simParams = {
     eps: 0.001,
 }
 
-/*export var contextIsConfigured = () => {
-    var value = true;
-
-    Object.defineProperty(this, 'value', {
-        get: function() {
-            return value;
-        },
-        set: function(newValue) {
-            value = newValue;
-        }
-    })
-};*/
-
 // Make number of threads visible when "CPU(Multi-Threads") has been pressed
 $('input[name=typeButton]:radio').change(function(){
     // Read current value of radio button
@@ -85,7 +72,8 @@ $('#updateButton').on('click', () => {
     // Read new number of particles
     var numParticles = $('#numParticles').val() as number;
 
-    //setTimeout(function() {
+    // Delay before calling main to make sure canvas gets cleared first
+    setTimeout(function() {
         main(numParticles);
-    //}, 1000);
+    }, 100); // Call main after 100 ms
 });

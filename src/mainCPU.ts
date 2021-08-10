@@ -1,7 +1,7 @@
 import { simParams } from './main';
 import $ from 'jquery';
 
-var contextIsConfigured;
+var cpuContextIsConfigured;
 
 export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     const canvasWebGPU = document.getElementById('canvasWebGPU');
@@ -16,7 +16,7 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     context.fillStyle = "black";
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
 
-    contextIsConfigured = true;
+    cpuContextIsConfigured = true;
     
     // Create Particles
     const particlesData = new Float32Array(numParticles * 4);
@@ -51,7 +51,7 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     function frame() {
         console.log(t);
         // Return if context is not configured;
-        if(!contextIsConfigured) return;
+        if(!cpuContextIsConfigured) return;
 
         for (let i = 0; i < numParticles; ++i) {
             var vPos = [particlesData[4 * i + 0], particlesData[4 * i + 1]];
@@ -127,22 +127,9 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     }
     requestAnimationFrame(frame);
 
-    /*// Delte canvas context for redrawing canvas
+    // Delte canvas context for redrawing canvas
     $('#updateButton').on('click', () => {
-        var canvasCPU = document.getElementById('canvasCPU');
-        var context = canvasCPU.getContext("2d");
-
-        contextIsConfigured = false;
+        cpuContextIsConfigured = false;
         context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
-    });*/
+    });
 }
-
-// Delte canvas context for redrawing canvas
-$('#updateButton').on('click', () => {
-    var canvasCPU = document.getElementById('canvasCPU') as HTMLCanvasElement;
-    var context = canvasCPU.getContext("2d");
-
-    console.log("CanvasCPU Clear");
-    contextIsConfigured = false;
-    context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
-});

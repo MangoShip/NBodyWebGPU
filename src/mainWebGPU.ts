@@ -4,7 +4,7 @@ import { simParams } from './main';
 import spriteWGSL from './sprite.wgsl';
 import updateSpriteWGSL from './updateSprite.wgsl';
 
-var contextIsConfigured;
+var gpuContextIsConfigured;
 
 export const CreateParticlesWebGPU = async (numParticles=1500) => {
     const checkgpu = CheckWebGPU();
@@ -31,7 +31,7 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
         format: format,
     });
 
-    contextIsConfigured = true;
+    gpuContextIsConfigured = true;
 
     const spriteShaderModule = device.createShaderModule({ code: spriteWGSL });
     const renderPipeline = device.createRenderPipeline({
@@ -196,7 +196,7 @@ export const CreateParticlesWebGPU = async (numParticles=1500) => {
     let t = 0;
     function frame() {
         // Return if context is not configured;
-        if(!contextIsConfigured) return;
+        if(!gpuContextIsConfigured) return;
 
         const textureView = context.getCurrentTexture().createView();
         const renderPassDescriptor: GPURenderPassDescriptor = {
@@ -252,7 +252,7 @@ $('#updateButton').on('click', () => {
     var canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement;
     var context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
     
-    contextIsConfigured = false;
+    gpuContextIsConfigured = false;
     context.unconfigure();
-    console.log("WEBGPU " + contextIsConfigured);
+    console.log("WEBGPU " + gpuContextIsConfigured);
 });
