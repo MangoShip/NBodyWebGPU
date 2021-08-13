@@ -11085,7 +11085,7 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
     cpuContextIsConfigured = true;
     // Create Particles
-    const particlesData = new Float32Array(numParticles * 4);
+    var particlesData = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -11094,8 +11094,6 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         // Draw particle to canvas
         drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
     }
-    // Helper function for dot product
-    const dotProduct = (a, b) => a.map((x, i) => a[i] * b[i]).reduce((m, n) => m + n);
     // Draw particles by converting particlesData coordinates to canvas coordinates
     function drawParticles(x, y, color) {
         var canvasHalfWidth = canvasCPU.width / 2;
@@ -11109,70 +11107,62 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
-    let t = 0;
     // Update Particles
     function frame() {
-        // Return if context is not configured;
+        // Return if context is not configured
         if (!cpuContextIsConfigured)
             return;
-        for (let i = 0; i < numParticles; ++i) {
-            var vPos = [particlesData[4 * i + 0], particlesData[4 * i + 1]];
-            var vVel = [particlesData[4 * i + 2], particlesData[4 * i + 3]];
-            var pos, distance;
-            var acc = [0.0, 0.0];
-            for (let j = 0; j < numParticles; ++j) {
-                if (i == j) {
-                    continue;
+        var numWorkerFinished = 0;
+        // Assign work to each worker 
+        for (let i = 0; i < numThreads; ++i) {
+            var worker = new Worker('../src/cpuWorker.js');
+            var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
+            var startIndex = chunk_size * i;
+            var endIndex = Math.min(startIndex + chunk_size, +numParticles);
+            // Assign computation work with range to worker
+            worker.postMessage({
+                numParticles: numParticles,
+                simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
+                particlesData: particlesData,
+                startIndex: startIndex,
+                endIndex: endIndex
+            });
+            // Update particlesData with received data
+            worker.onmessage = function (event) {
+                particlesData = event.data;
+                numWorkerFinished++;
+                console.log("WORK COMPLETED");
+                if (numWorkerFinished == numThreads) {
+                    // Erase all particles
+                    context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
+                    // Draw canvas background
+                    context.fillStyle = "black";
+                    context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
+                    // Draw new particles
+                    for (let i = 0; i < numParticles; ++i) {
+                        drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
+                    }
+                    // Measure performance
+                    currentTime = performance.now();
+                    var elapsedTime = currentTime - previousTime;
+                    previousTime = currentTime;
+                    var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+                    totalFramePerSecond += framePerSecond;
+                    frameCounter++;
+                    if (updatePerformance) {
+                        updatePerformance = false;
+                        let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+                        frameCounter = 0;
+                        totalFramePerSecond = 0;
+                        document.getElementById("fps").innerHTML = `FPS:  ${averageFramePerSecond}`;
+                        setTimeout(() => {
+                            updatePerformance = true;
+                        }, 50); // update FPS every 50ms
+                    }
+                    requestAnimationFrame(frame);
                 }
-                pos = [particlesData[4 * j + 0], particlesData[4 * j + 1]];
-                distance = vPos.map((x, i) => x - pos[i]);
-                var x = _main__WEBPACK_IMPORTED_MODULE_0__.simParams.r0 / Math.sqrt(dotProduct(distance, distance) + _main__WEBPACK_IMPORTED_MODULE_0__.simParams.eps);
-                // Molecular force
-                var molForce = _main__WEBPACK_IMPORTED_MODULE_0__.simParams.eps * (Math.pow(x, 13.0) - Math.pow(x, 7.0));
-                var molVec = distance.map((x) => x * molForce);
-                acc = acc.map((x, i) => x + molVec[i]);
-                // Long-distance gravity force
-                var gravForce = _main__WEBPACK_IMPORTED_MODULE_0__.simParams.G * (Math.pow(x, 3.0));
-                var gravVec = distance.map((x) => x * gravForce);
-                acc = acc.map((x, i) => x + gravVec[i]);
-            }
-            var accTime = acc.map((x) => x * _main__WEBPACK_IMPORTED_MODULE_0__.simParams.dt);
-            vVel = vVel.map((x, i) => vVel[i] + accTime[i]);
-            var velTime = vVel.map((x) => x * _main__WEBPACK_IMPORTED_MODULE_0__.simParams.dt);
-            vPos = vPos.map((x, i) => vPos[i] + velTime[i]);
-            particlesData[4 * i + 0] = vPos[0]; // posX
-            particlesData[4 * i + 1] = vPos[1]; // posY
-            particlesData[4 * i + 2] = vVel[0]; // velX
-            particlesData[4 * i + 3] = vVel[1]; // velY
+            };
         }
-        // Erase all particles
-        context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
-        // Draw canvas background
-        context.fillStyle = "black";
-        context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
-        // Draw new particles
-        for (let i = 0; i < numParticles; ++i) {
-            drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
-        }
-        ++t;
-        // Measure performance
-        currentTime = performance.now();
-        var elapsedTime = currentTime - previousTime;
-        previousTime = currentTime;
-        var framePerSecond = Math.round(1 / (elapsedTime / 1000));
-        totalFramePerSecond += framePerSecond;
-        frameCounter++;
-        if (updatePerformance) {
-            updatePerformance = false;
-            let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
-            frameCounter = 0;
-            totalFramePerSecond = 0;
-            document.getElementById("fps").innerHTML = `FPS:  ${averageFramePerSecond}`;
-            setTimeout(() => {
-                updatePerformance = true;
-            }, 50); // update FPS every 50ms
-        }
-        requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
     // Delte canvas context for redrawing canvas
