@@ -11091,7 +11091,7 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
         particlesData[4 * i + 2] = 0; // velX
         particlesData[4 * i + 3] = 0; // velY
-        // Draw particle to canvas
+        // Draw particle to canvass
         drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
     }
     // Draw particles by converting particlesData coordinates to canvas coordinates
@@ -11107,6 +11107,8 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
+    // Varaible for holding all the workers
+    var workerList = [];
     // Update Particles
     function frame() {
         // Return if context is not configured
@@ -11116,6 +11118,7 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         // Assign work to each worker 
         for (let i = 0; i < numThreads; ++i) {
             var worker = new Worker('../src/cpuWorker.js');
+            workerList[i] = worker;
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
@@ -11158,6 +11161,10 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
                         setTimeout(() => {
                             updatePerformance = true;
                         }, 50); // update FPS every 50ms
+                    }
+                    // Clear up workers 
+                    for (let j = 0; j < numThreads; ++j) {
+                        workerList[j].terminate();
                     }
                     requestAnimationFrame(frame);
                 }
