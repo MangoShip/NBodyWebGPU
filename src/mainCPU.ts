@@ -20,8 +20,10 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     cpuContextIsConfigured = true;
     
     // Create Particles
-    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
-    var particlesData = new Float32Array(particlesBuffer);
+    
+    //var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    //var particlesData = new Float32Array(particlesBuffer);
+    var particlesData = new Float32Array(numParticles * 4);
 
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
@@ -76,7 +78,7 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
             var transferData = {
                 numParticles: numParticles,
                 simParams: simParams,
-                particlesBuffer: particlesBuffer,
+                particlesData: particlesData,
                 startIndex: startIndex,
                 endIndex: endIndex
             }
@@ -87,7 +89,7 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
             // Update particlesData with received data
             worker.onmessage = function(event) {
                 numWorkerFinished++;
-                //console.log("WORK COMPLETED");
+                particlesData = event.data;
 
                 if(numWorkerFinished == numThreads) {
                     // Erase all particles
