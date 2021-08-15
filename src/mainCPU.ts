@@ -4,7 +4,7 @@ import $ from 'jquery';
 var cpuContextIsConfigured;
 
 export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
-
+ 
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU') as HTMLCanvasElement;
     const context = canvasCPU.getContext("2d");
@@ -20,7 +20,9 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     cpuContextIsConfigured = true;
     
     // Create Particles
-    var particlesData = new Float32Array(numParticles * 4);
+    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    var particlesData = new Float32Array(particlesBuffer);
+
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -46,6 +48,12 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     var totalFramePerSecond = 0;
     var frameCounter = 0;
 
+    // Variables for performance measurement (fps), specifically for test results
+    var currentFrame = 0;
+    var endFrame = 10000;
+    var totalFPS = 0;
+    var startTime = performance.now();
+
     // Varaible for holding all the workers
     var workerList = [];
 
@@ -65,20 +73,21 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
     
-            // Assign computation work with range to worker
-            worker.postMessage({
+            var transferData = {
                 numParticles: numParticles,
                 simParams: simParams,
-                particlesData: particlesData,
+                particlesBuffer: particlesBuffer,
                 startIndex: startIndex,
                 endIndex: endIndex
-            });
-    
+            }
+            
+            // Assign computation work with range to worker
+            worker.postMessage(transferData);
+
             // Update particlesData with received data
             worker.onmessage = function(event) {
-                particlesData = event.data;
                 numWorkerFinished++;
-                console.log("WORK COMPLETED");
+                //console.log("WORK COMPLETED");
 
                 if(numWorkerFinished == numThreads) {
                     // Erase all particles
@@ -114,6 +123,20 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
                         setTimeout(() => {
                             updatePerformance = true;
                         }, 50); // update FPS every 50ms
+                    }
+
+                    // Test result
+                    totalFPS += framePerSecond;
+                    currentFrame++;
+
+                    if(currentFrame == endFrame) {
+                        console.log("Average FPS after " + endFrame + " frames: " + totalFPS / endFrame);
+                        console.log("Duration Time: " + ((performance.now() - startTime)/1000) + "seconds");
+
+                        startTime = performance.now();
+
+                        currentFrame = 0;
+                        totalFPS = 0;
                     }
 
                     // Clear up workers 

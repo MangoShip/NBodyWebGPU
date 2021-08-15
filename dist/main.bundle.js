@@ -11026,12 +11026,14 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').ch
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "visible";
         }
+        document.getElementById("numParticles").value = "50";
     }
     else {
         var elements = document.querySelectorAll('.numThreads');
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "hidden";
         }
+        document.getElementById("numParticles").value = "1500";
     }
 });
 // Restarts main with new simulation type and particle number.
@@ -11085,7 +11087,8 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
     cpuContextIsConfigured = true;
     // Create Particles
-    var particlesData = new Float32Array(numParticles * 4);
+    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    var particlesData = new Float32Array(particlesBuffer);
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -11107,6 +11110,11 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
+    // Variables for performance measurement (fps), specifically for test results
+    var currentFrame = 0;
+    var endFrame = 10000;
+    var totalFPS = 0;
+    var startTime = performance.now();
     // Varaible for holding all the workers
     var workerList = [];
     // Update Particles
@@ -11122,19 +11130,19 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
-            // Assign computation work with range to worker
-            worker.postMessage({
+            var transferData = {
                 numParticles: numParticles,
                 simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
-                particlesData: particlesData,
+                particlesBuffer: particlesBuffer,
                 startIndex: startIndex,
                 endIndex: endIndex
-            });
+            };
+            // Assign computation work with range to worker
+            worker.postMessage(transferData);
             // Update particlesData with received data
             worker.onmessage = function (event) {
-                particlesData = event.data;
                 numWorkerFinished++;
-                console.log("WORK COMPLETED");
+                //console.log("WORK COMPLETED");
                 if (numWorkerFinished == numThreads) {
                     // Erase all particles
                     context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
@@ -11161,6 +11169,16 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
                         setTimeout(() => {
                             updatePerformance = true;
                         }, 50); // update FPS every 50ms
+                    }
+                    // Test result
+                    totalFPS += framePerSecond;
+                    currentFrame++;
+                    if (currentFrame == endFrame) {
+                        console.log("Average FPS after " + endFrame + " frames: " + totalFPS / endFrame);
+                        console.log("Duration Time: " + ((performance.now() - startTime) / 1000) + "seconds");
+                        startTime = performance.now();
+                        currentFrame = 0;
+                        totalFPS = 0;
                     }
                     // Clear up workers 
                     for (let j = 0; j < numThreads; ++j) {

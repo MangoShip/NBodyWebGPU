@@ -2,13 +2,16 @@
 const dotProduct = (a, b) => a.map((x, i) => a[i] * b[i]).reduce((m, n) => m + n);
 
 self.onmessage = function(event) {
-    console.log("WORK STARTED");
+    //console.log("WORK STARTED");
 
     // Perform computation at specific start and end index
-    var particlesData = event.data.particlesData;
+    var particlesData = new Float32Array(event.data.particlesBuffer);
     var simParams = event.data.simParams;
 
+    //console.log(particlesData);
+
     for (let i = event.data.startIndex; i < event.data.endIndex; ++i) {
+        //Atomics.load(particlesData, 4 * i + 0)
         var vPos = [particlesData[4 * i + 0], particlesData[4 * i + 1]];
         var vVel = [particlesData[4 * i + 2], particlesData[4 * i + 3]];
 

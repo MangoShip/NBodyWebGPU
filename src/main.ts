@@ -58,12 +58,15 @@ $('input[name=typeButton]:radio').change(function(){
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "visible"; 
         }
+        (<HTMLInputElement>document.getElementById("numParticles")).value = "50";
+
     }
     else {
         var elements = document.querySelectorAll<HTMLElement>('.numThreads');
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "hidden"; 
         }
+        (<HTMLInputElement>document.getElementById("numParticles")).value = "1500";
     }
 })
 
