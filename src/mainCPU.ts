@@ -57,6 +57,12 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     // Varaible for holding all the workers
     var workerList = [];
 
+    // Initialize workers
+    for (let j = 0; j < numThreads; ++j) {
+        var worker = new Worker('../src/cpuWorker.js');
+        workerList[j] = worker;
+    }
+
     // Update Particles
     function frame() {
         // Return if context is not configured
@@ -66,9 +72,7 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
 
         // Assign work to each worker 
         for (let i = 0; i < numThreads; ++i) {
-            var worker = new Worker('../src/cpuWorker.js');
-            workerList[i] = worker;
-    
+
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads)
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
@@ -82,10 +86,10 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
             }
             
             // Assign computation work with range to worker
-            worker.postMessage(transferData);
+            workerList[i].postMessage(transferData);
 
             // Update particlesData with received data
-            worker.onmessage = function(event) {
+            workerList[i].onmessage = function(event) {
                 numWorkerFinished++;
                 //console.log("WORK COMPLETED");
 
@@ -139,11 +143,6 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
                         totalFPS = 0;
                     }
 
-                    // Clear up workers 
-                    for (let j = 0; j < numThreads; ++j) {
-                        workerList[j].terminate();
-                    }
-
                     requestAnimationFrame(frame);
                 }
             }
@@ -154,6 +153,13 @@ export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
     // Delte canvas context for redrawing canvas
     $('#updateButton').on('click', () => {
         cpuContextIsConfigured = false;
+
+        // Clear canvas' context
         context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
+
+        // Terminate workers
+        for (let j = 0; j < numThreads; ++j) {
+            workerList[j].terminate();
+        }
     });
 }

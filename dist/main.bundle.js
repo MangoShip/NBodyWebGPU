@@ -11117,6 +11117,11 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     var startTime = performance.now();
     // Varaible for holding all the workers
     var workerList = [];
+    // Initialize workers
+    for (let j = 0; j < numThreads; ++j) {
+        var worker = new Worker('../src/cpuWorker.js');
+        workerList[j] = worker;
+    }
     // Update Particles
     function frame() {
         // Return if context is not configured
@@ -11125,8 +11130,6 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         var numWorkerFinished = 0;
         // Assign work to each worker 
         for (let i = 0; i < numThreads; ++i) {
-            var worker = new Worker('../src/cpuWorker.js');
-            workerList[i] = worker;
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
@@ -11138,9 +11141,9 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
                 endIndex: endIndex
             };
             // Assign computation work with range to worker
-            worker.postMessage(transferData);
+            workerList[i].postMessage(transferData);
             // Update particlesData with received data
-            worker.onmessage = function (event) {
+            workerList[i].onmessage = function (event) {
                 numWorkerFinished++;
                 //console.log("WORK COMPLETED");
                 if (numWorkerFinished == numThreads) {
@@ -11180,10 +11183,6 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
                         currentFrame = 0;
                         totalFPS = 0;
                     }
-                    // Clear up workers 
-                    for (let j = 0; j < numThreads; ++j) {
-                        workerList[j].terminate();
-                    }
                     requestAnimationFrame(frame);
                 }
             };
@@ -11193,7 +11192,12 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     // Delte canvas context for redrawing canvas
     jquery__WEBPACK_IMPORTED_MODULE_1___default()('#updateButton').on('click', () => {
         cpuContextIsConfigured = false;
+        // Clear canvas' context
         context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
+        // Terminate workers
+        for (let j = 0; j < numThreads; ++j) {
+            workerList[j].terminate();
+        }
     });
 });
 
