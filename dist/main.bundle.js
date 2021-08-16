@@ -11087,8 +11087,8 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
     cpuContextIsConfigured = true;
     // Create Particles
-    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
-    var particlesData = new Float32Array(particlesBuffer);
+    //var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    var particlesData = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -11130,17 +11130,23 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
+            var slicedArray = particlesData.slice(startIndex, endIndex);
             var transferData = {
                 numParticles: numParticles,
                 simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
-                particlesBuffer: particlesBuffer,
+                particlesData: slicedArray.buffer,
                 startIndex: startIndex,
                 endIndex: endIndex
             };
             // Assign computation work with range to worker
-            worker.postMessage(transferData);
+            worker.postMessage(transferData, [slicedArray.buffer]);
             // Update particlesData with received data
             worker.onmessage = function (event) {
+                let index = 0;
+                for (let j = event.data.startIndex; j < event.data.endIndex; ++j) {
+                    particlesData[j] = event.data.particlesData[index];
+                    ++index;
+                }
                 numWorkerFinished++;
                 //console.log("WORK COMPLETED");
                 if (numWorkerFinished == numThreads) {
