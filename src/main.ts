@@ -58,7 +58,7 @@ $('input[name=typeButton]:radio').change(function(){
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "visible"; 
         }
-        (<HTMLInputElement>document.getElementById("numParticles")).value = "50";
+        (<HTMLInputElement>document.getElementById("numParticles")).value = "150";
 
     }
     else {

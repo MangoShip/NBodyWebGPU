@@ -11026,7 +11026,7 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').ch
         for (var i = 0; i < elements.length; i++) {
             elements[i].style.visibility = "visible";
         }
-        document.getElementById("numParticles").value = "50";
+        document.getElementById("numParticles").value = "150";
     }
     else {
         var elements = document.querySelectorAll('.numThreads');
