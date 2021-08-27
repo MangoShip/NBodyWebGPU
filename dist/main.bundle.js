@@ -10966,6 +10966,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _mainWebGPU__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mainWebGPU */ "./src/mainWebGPU.ts");
 /* harmony import */ var _mainCPU__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mainCPU */ "./src/mainCPU.ts");
+/* harmony import */ var _mainCPUQuad__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mainCPUQuad */ "./src/mainCPUQuad.ts");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10978,6 +10979,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
+
 const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
     // Error check on numParticles
     if (numParticles <= 0 || numParticles == null) {
@@ -10985,11 +10987,17 @@ const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function
         return;
     }
     var numThreads = 0;
+    var thetaValue = -1;
     // Launch simulation
     if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "CPU") {
         numThreads = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#numThreads').val();
         console.log("Launching CPU with " + numParticles + " particles and " + numThreads + " threads");
         (0,_mainCPU__WEBPACK_IMPORTED_MODULE_2__.CreateParticlesCPU)(numParticles, numThreads);
+    }
+    else if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "CPUQuad(SingleThread)") {
+        thetaValue = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#thetaRange').val();
+        console.log("Launching CPUQuad(SingleThread) with " + numParticles + " particles with " + thetaValue + " theta value");
+        (0,_mainCPUQuad__WEBPACK_IMPORTED_MODULE_3__.CreateParticlesCPUQuad)(numParticles, thetaValue);
     }
     else if (jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val() == "WebGPU") {
         console.log("Launching WebGPU with " + numParticles + " particles");
@@ -11008,6 +11016,12 @@ const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function
     else {
         jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentNumThreads').text(numThreads);
     }
+    if (thetaValue == -1) {
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentThetaValue').text("");
+    }
+    else {
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentThetaValue').text(thetaValue);
+    }
 });
 main();
 // Variables used for computation
@@ -11019,22 +11033,43 @@ const simParams = {
 };
 // Make number of threads visible when "CPU(Multi-Threads") has been pressed
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').change(function () {
+    // Hide all elements first
+    var elements = document.querySelectorAll('.numThreads');
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.display = "none";
+    }
+    elements = document.querySelectorAll('.thetaValue');
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.display = "none";
+    }
     // Read current value of radio button
     var buttonType = jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:checked').val();
+    // Update elements' display and particle numbers based on simulation type
     if (buttonType == "CPU") {
         var elements = document.querySelectorAll('.numThreads');
         for (var i = 0; i < elements.length; i++) {
-            elements[i].style.visibility = "visible";
+            elements[i].style.display = "block";
+        }
+        document.getElementById("numParticles").value = "150";
+    }
+    else if (buttonType == "CPUQuad(SingleThread)") {
+        var elements = document.querySelectorAll('.thetaValue');
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.display = "block";
         }
         document.getElementById("numParticles").value = "150";
     }
     else {
-        var elements = document.querySelectorAll('.numThreads');
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].style.visibility = "hidden";
-        }
         document.getElementById("numParticles").value = "1500";
     }
+});
+// Update text for theta value
+jquery__WEBPACK_IMPORTED_MODULE_0___default()('#thetaRange').on('change', () => {
+    var value = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#thetaRange').val();
+    if (value.length == 1) { // 0, 1, 2
+        value += ".0";
+    }
+    document.getElementById("thetaText").innerHTML = value;
 });
 // Restarts main with new simulation type and particle number.
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
@@ -11075,7 +11110,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 var cpuContextIsConfigured;
-const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(void 0, void 0, void 0, function* () {
+const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(void 0, void 0, void 0, function* () {
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU');
     const context = canvasCPU.getContext("2d");
@@ -11198,6 +11233,142 @@ const CreateParticlesCPU = (numParticles = 100, numThreads = 1) => __awaiter(voi
         for (let j = 0; j < numThreads; ++j) {
             workerList[j].terminate();
         }
+    });
+});
+
+
+/***/ }),
+
+/***/ "./src/mainCPUQuad.ts":
+/*!****************************!*\
+  !*** ./src/mainCPUQuad.ts ***!
+  \****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CreateParticlesCPUQuad": () => (/* binding */ CreateParticlesCPUQuad)
+/* harmony export */ });
+/* harmony import */ var _main__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./main */ "./src/main.ts");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_1__);
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+var cpuContextIsConfigured;
+const CreateParticlesCPUQuad = (numParticles = 150, thetaValue = 1) => __awaiter(void 0, void 0, void 0, function* () {
+    const canvasWebGPU = document.getElementById('canvasWebGPU');
+    const canvasCPU = document.getElementById('canvasCPU');
+    const context = canvasCPU.getContext("2d");
+    // Switch canvas
+    canvasWebGPU.style.display = "none";
+    canvasCPU.style.display = "block";
+    // Draw canvas background
+    context.fillStyle = "black";
+    context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
+    cpuContextIsConfigured = true;
+    // Create Particles
+    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    var particlesData = new Float32Array(particlesBuffer);
+    for (let i = 0; i < numParticles; ++i) {
+        particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
+        particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
+        particlesData[4 * i + 2] = 0; // velX
+        particlesData[4 * i + 3] = 0; // velY
+        // Draw particle to canvass
+        drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
+    }
+    // Draw particles by converting particlesData coordinates to canvas coordinates
+    function drawParticles(x, y, color) {
+        var canvasHalfWidth = canvasCPU.width / 2;
+        var canvasHalfHeight = canvasCPU.height / 2;
+        context.fillStyle = color;
+        context.fillRect(x * canvasHalfWidth + canvasHalfWidth, y * canvasHalfHeight + canvasHalfHeight, 1, 1);
+    }
+    // Variables for performance measurement (fps)
+    let updatePerformance = true;
+    var currentTime, previousTime;
+    currentTime = previousTime = performance.now();
+    var totalFramePerSecond = 0;
+    var frameCounter = 0;
+    // Variables for performance measurement (fps), specifically for test results
+    var currentFrame = 0;
+    var endFrame = 10000;
+    var totalFPS = 0;
+    var startTime = performance.now();
+    // Initialize a worker
+    var worker = new Worker('../src/cpuQuadWorker.js');
+    // Update Particles
+    function frame() {
+        // Return if context is not configured
+        if (!cpuContextIsConfigured)
+            return;
+        var transferData = {
+            numParticles: numParticles,
+            simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
+            particlesBuffer: particlesBuffer,
+            canvasSize: [canvasCPU.width, canvasCPU.height]
+        };
+        // Assign computation work with range to worker
+        worker.postMessage(transferData);
+        // Update particlesData with received data
+        worker.onmessage = function (event) {
+            // Erase all particles
+            context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
+            // Draw canvas background
+            context.fillStyle = "black";
+            context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
+            // Draw new particles
+            for (let i = 0; i < numParticles; ++i) {
+                drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
+            }
+            // Measure performance
+            currentTime = performance.now();
+            var elapsedTime = currentTime - previousTime;
+            previousTime = currentTime;
+            var framePerSecond = Math.round(1 / (elapsedTime / 1000));
+            totalFramePerSecond += framePerSecond;
+            frameCounter++;
+            if (updatePerformance) {
+                updatePerformance = false;
+                let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
+                frameCounter = 0;
+                totalFramePerSecond = 0;
+                document.getElementById("fps").innerHTML = `FPS:  ${averageFramePerSecond}`;
+                setTimeout(() => {
+                    updatePerformance = true;
+                }, 50); // update FPS every 50ms
+            }
+            // Test result
+            totalFPS += framePerSecond;
+            currentFrame++;
+            if (currentFrame == endFrame) {
+                console.log("Average FPS after " + endFrame + " frames: " + totalFPS / endFrame);
+                console.log("Duration Time: " + ((performance.now() - startTime) / 1000) + "seconds");
+                startTime = performance.now();
+                currentFrame = 0;
+                totalFPS = 0;
+            }
+            //requestAnimationFrame(frame);
+        };
+    }
+    requestAnimationFrame(frame);
+    // Delte canvas context for redrawing canvas
+    jquery__WEBPACK_IMPORTED_MODULE_1___default()('#updateButton').on('click', () => {
+        cpuContextIsConfigured = false;
+        // Clear canvas' context
+        context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
+        // Terminate worker
+        worker.terminate();
     });
 });
 

@@ -24,6 +24,9 @@
          <br>
          <label> Current Number of Threads: </label>
          <text id=currentNumThreads style="font-weight: bold"></text>
+         <br>
+         <label> Current Theta Value: </label>
+         <text id=currentThetaValue style="font-weight: bold"></text>
          <div id="fps" style="font-weight: bold"></div>
       </div>
       <canvas id="canvasWebGPU" width="640" height="640"></canvas>
@@ -32,12 +35,20 @@
          <label> Simulation Type: </label>
          <text id="changeType" style="font-weight:bold"></text>
          <input type="radio" name="typeButton" value="CPU">CPU</button>
+         <input type="radio" name="typeButton" value="CPUQuad(SingleThread)">CPUQuad(SingleThread)</button>
          <input type="radio" name="typeButton" value="WebGPU" checked>WebGPU</button>
          <br>
          <label> Number of Particles: </label>
          <input type="number" id="numParticles" min="0" value="1500">
-         <label class="numThreads"> Number of Threads: </label>
-         <input type="number" class="numThreads" id="numThreads" min="1" value="1">            
+         <div class="thetaValue">
+            <label> Theta: </label>
+            <input type="range" id="thetaRange" min="0" max="2" step="0.1" value="1">
+            <text id="thetaText">1.0</text>
+         </div>
+         <div class="numThreads">
+            <label> Number of Threads: </label>
+            <input type="number" id="numThreads" min="1" value="1">   
+         </div>         
          <br>
          <button type=button id="updateButton">Update</button>
       </div>

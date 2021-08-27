@@ -3,7 +3,7 @@ import $ from 'jquery';
 
 var cpuContextIsConfigured;
 
-export const CreateParticlesCPU = async (numParticles=100, numThreads=1) => {
+export const CreateParticlesCPU = async (numParticles=150, numThreads=1) => {
  
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU') as HTMLCanvasElement;
