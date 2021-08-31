@@ -103,7 +103,7 @@ $('input[name=typeButton]:radio').change(function(){
 $('#thetaRange').on('change', () => {
     var value = $('#thetaRange').val() as string;
     
-    if(value.length == 1) { // 0, 1, 2
+    if(value.length == 1) { // 0, 1
         value += ".0";
     }
     document.getElementById("thetaText")!.innerHTML = value;

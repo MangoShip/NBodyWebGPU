@@ -11066,7 +11066,7 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()('input[name=typeButton]:radio').ch
 // Update text for theta value
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('#thetaRange').on('change', () => {
     var value = jquery__WEBPACK_IMPORTED_MODULE_0___default()('#thetaRange').val();
-    if (value.length == 1) { // 0, 1, 2
+    if (value.length == 1) { // 0, 1
         value += ".0";
     }
     document.getElementById("thetaText").innerHTML = value;
