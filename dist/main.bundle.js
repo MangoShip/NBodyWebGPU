@@ -11316,7 +11316,8 @@ const CreateParticlesCPUQuad = (numParticles = 150, thetaValue = 1) => __awaiter
             numParticles: numParticles,
             simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
             particlesBuffer: particlesBuffer,
-            canvasSize: [canvasCPU.width, canvasCPU.height]
+            canvasSize: [canvasCPU.width, canvasCPU.height],
+            thetaValue: thetaValue
         };
         // Assign computation work with range to worker
         worker.postMessage(transferData);
@@ -11358,7 +11359,7 @@ const CreateParticlesCPUQuad = (numParticles = 150, thetaValue = 1) => __awaiter
                 currentFrame = 0;
                 totalFPS = 0;
             }
-            //requestAnimationFrame(frame);
+            requestAnimationFrame(frame);
         };
     }
     requestAnimationFrame(frame);

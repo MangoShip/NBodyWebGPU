@@ -66,7 +66,8 @@ export const CreateParticlesCPUQuad = async (numParticles=150, thetaValue=1) => 
             numParticles: numParticles,
             simParams: simParams,
             particlesBuffer: particlesBuffer,
-            canvasSize: [canvasCPU.width, canvasCPU.height]
+            canvasSize: [canvasCPU.width, canvasCPU.height],
+            thetaValue : thetaValue
         }
 
         // Assign computation work with range to worker
@@ -123,7 +124,7 @@ export const CreateParticlesCPUQuad = async (numParticles=150, thetaValue=1) => 
                 totalFPS = 0;
             }
 
-            //requestAnimationFrame(frame);
+            requestAnimationFrame(frame);
         }
     }
     requestAnimationFrame(frame);
