@@ -95,7 +95,7 @@ $('input[name=typeButton]:radio').change(function(){
         (<HTMLInputElement>document.getElementById("numParticles")).value = "150";
     }
     else {
-        (<HTMLInputElement>document.getElementById("numParticles")).value = "1500";
+        (<HTMLInputElement>document.getElementById("numParticles")).value = "1000";
     }
 })
 

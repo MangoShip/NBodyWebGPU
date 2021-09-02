@@ -114,6 +114,15 @@ class QuadTree {
 
         this.containNumPoints--;
 
+        if(this.containNumPoints == 0) {
+            this.averagePosition.x = 0;
+            this.averagePosition.y = 0;
+        }
+        else {
+            this.averagePosition.x = ((this.averagePosition.x * (this.containNumPoints + 1)) - point.x) / this.containNumPoints;
+            this.averagePosition.y = ((this.averagePosition.y * (this.containNumPoints + 1)) - point.y) / this.containNumPoints;
+        }
+
         // Recurse through all existing quadrants
         if(this.topLeftTree != undefined) {
             // Look at point of topLeftTree, if identitcal then delete
@@ -276,6 +285,24 @@ self.onmessage = function(event) {
         var velTime = vVel.map((x) => x * simParams.dt);
         vPos = vPos.map((x, i) => vPos[i] + velTime[i]);
 
+        // Reflect if at boundary
+        if (vPos[0] < -1.0) { // neg x
+            vPos[0] = -1.0 - (vPos[0] + 1.0);
+            vVel[0] = vVel[0] * -1.0;
+        }
+        if (vPos[0] > 1.0) { // pos x
+            vPos[0] = 1.0 - (vPos[0] - 1.0);
+            vVel[0] = vVel[0] * -1.0;
+        }
+        if (vPos[1] < -1.0) { // neg y
+            vPos[1] = -1.0 - (vPos[1] + 1.0);
+            vVel[1] = vVel[1] * -1.0;
+        }
+        if (vPos[1] > 1.0) { // pos y
+            vPos[1] = 1.0 - (vPos[1] - 1.0);
+            vVel[1] = vVel[1] * -1.0;
+        }
+
         particlesData[4 * pointList[i].index + 0] = vPos[0]; // posX
         particlesData[4 * pointList[i].index + 1] = vPos[1]; // posY
         particlesData[4 * pointList[i].index + 2] = vVel[0]; // velX
@@ -289,6 +316,8 @@ self.onmessage = function(event) {
             convertToCanvas(particlesData[4 * i + 1], canvasSize[1]),
             i);
         quadTree.insert(pointList[i]);
+
+
     }
 
     // Send back data

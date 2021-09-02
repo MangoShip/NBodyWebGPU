@@ -85,6 +85,9 @@ export const CreateParticlesCPUQuad = async (numParticles=150, thetaValue=1) => 
             // Draw new particles
             for (let i = 0; i < numParticles; ++i) {
                 drawParticles(particlesData[4 * i + 0], particlesData[4 * i + 1], "white");
+                /*if(particlesData[4 * i + 0] > 1 || particlesData[4 * i + 0] < -1) {
+                    console.log("OUT OF BOUNDS");
+                }*/
             }
 
             // Measure performance

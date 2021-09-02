@@ -48,6 +48,24 @@ fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
   vVel = vVel + (acc * params.dt);
   vPos = vPos + (vVel * params.dt);
 
+  // Reflect if at boundary
+  if (vPos.x < -1.0) { // neg x
+      vPos.x = -1.0 - (vPos.x + 1.0);
+      vVel.x = vVel.x * -1.0;
+  }
+  if (vPos.x > 1.0) { // pos x
+      vPos.x = 1.0 - (vPos.x - 1.0);
+      vVel.x = vVel.x * -1.0;
+  }
+  if (vPos.y < -1.0) { // neg y
+      vPos.y = -1.0 - (vPos.y + 1.0);
+      vVel.y = vVel.y * -1.0;
+  }
+  if (vPos.y > 1.0) { // pos y
+      vPos.y = 1.0 - (vPos.y - 1.0);
+      vVel.y = vVel.y * -1.0;
+  }
+
   // Write back
   particlesB.particles[index].pos = vPos;
   particlesB.particles[index].vel = vVel;
