@@ -10980,7 +10980,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
-const main = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
+const main = (numParticles = 1000) => __awaiter(void 0, void 0, void 0, function* () {
     // Error check on numParticles
     if (numParticles <= 0 || numParticles == null) {
         console.warn("Need at least 1 particle!");
@@ -11409,7 +11409,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 var gpuContextIsConfigured;
-const CreateParticlesWebGPU = (numParticles = 1500) => __awaiter(void 0, void 0, void 0, function* () {
+const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0, void 0, function* () {
     const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_1__.CheckWebGPU)();
     if (checkgpu.includes('Your current browser does not support WebGPU!')) {
         console.log(checkgpu);

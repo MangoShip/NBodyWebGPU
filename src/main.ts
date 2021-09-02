@@ -3,7 +3,7 @@ import { CreateParticlesWebGPU } from './mainWebGPU';
 import { CreateParticlesCPU } from './mainCPU';
 import { CreateParticlesCPUQuad } from './mainCPUQuad';
 
-const main = async (numParticles=1500) => {
+const main = async (numParticles=1000) => {
     // Error check on numParticles
     if (numParticles <= 0 || numParticles == null) {
         console.warn("Need at least 1 particle!");

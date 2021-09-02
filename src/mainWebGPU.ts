@@ -6,7 +6,7 @@ import updateSpriteWGSL from './updateSprite.wgsl';
 
 var gpuContextIsConfigured;
 
-export const CreateParticlesWebGPU = async (numParticles=1500) => {
+export const CreateParticlesWebGPU = async (numParticles=1000) => {
     const checkgpu = CheckWebGPU();
     if(checkgpu.includes('Your current browser does not support WebGPU!')){
         console.log(checkgpu);
