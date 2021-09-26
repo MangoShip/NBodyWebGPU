@@ -11422,7 +11422,9 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     canvasWebGPU.style.display = "block";
     const adapter = yield navigator.gpu.requestAdapter();
     const device = yield adapter.requestDevice();
-    const context = canvasWebGPU.getContext('gpupresent');
+    //const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
+    const context = canvasWebGPU.getContext('webgpu');
+    console.log(canvasWebGPU.getContext('webgpu'));
     const format = 'bgra8unorm';
     context.configure({
         device: device,
@@ -11629,7 +11631,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
 // Delte canvas context for redrawing canvas
 jquery__WEBPACK_IMPORTED_MODULE_0___default()('#updateButton').on('click', () => {
     var canvasWebGPU = document.getElementById('canvasWebGPU');
-    var context = canvasWebGPU.getContext('gpupresent');
+    const context = canvasWebGPU.getContext('webgpu');
     gpuContextIsConfigured = false;
     context.unconfigure();
 });

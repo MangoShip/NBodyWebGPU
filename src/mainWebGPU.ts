@@ -22,7 +22,9 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
   
     const adapter = await navigator.gpu.requestAdapter() as GPUAdapter;       
     const device = await adapter.requestDevice() as GPUDevice;
-    const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
+    //const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
+
+    const context = canvasWebGPU.getContext('webgpu');
 
     const format = 'bgra8unorm';
 
@@ -33,6 +35,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
 
     gpuContextIsConfigured = true;
 
+    // Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/main.ts
     const spriteShaderModule = device.createShaderModule({ code: spriteWGSL });
     const renderPipeline = device.createRenderPipeline({
         vertex: {
@@ -259,7 +262,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
 // Delte canvas context for redrawing canvas
 $('#updateButton').on('click', () => {
     var canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement;
-    var context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
+    const context = canvasWebGPU.getContext('webgpu');
     
     gpuContextIsConfigured = false;
     context.unconfigure();

@@ -1,3 +1,4 @@
+// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/sprite.wgsl
 [[stage(vertex)]]
 fn vert_main([[location(0)]] a_particlePos : vec2<f32>,
         [[location(1)]] a_particleVel : vec2<f32>,
@@ -11,7 +12,7 @@ fn vert_main([[location(0)]] a_particlePos : vec2<f32>,
 
 }
 
-[[stage(fragment)]]
+[[stage(fragment)]] 
 fn frag_main() -> [[location(0)]] vec4<f32> {
         return vec4<f32>(1.0, 1.0, 1.0, 1.0);
 }

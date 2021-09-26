@@ -1,3 +1,4 @@
+// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/updateSprites.wgsl
 struct Particle {
     pos : vec2<f32>;
     vel : vec2<f32>;
@@ -17,6 +18,7 @@ struct Particle {
 
 [[stage(compute), workgroup_size(64)]]
 fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
+  // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py
   var index : u32 = GlobalInvocationID.x;
 
   var vPos = particlesA.particles[index].pos;
