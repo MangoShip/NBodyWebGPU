@@ -43,32 +43,13 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             entryPoint: 'vert_main',
             buffers: [
               {
-                // instanced particles buffer
-                arrayStride: 4 * 4,
-                stepMode: 'instance',
-                attributes: [
-                  {
-                    // instance position
-                    shaderLocation: 0,
-                    offset: 0,
-                    format: 'float32x2',
-                  },
-                  {
-                    // instance velocity
-                    shaderLocation: 1,
-                    offset: 2 * 4,
-                    format: 'float32x2',
-                  },
-                ],
-              },
-              {
                 // vertex buffer
-                arrayStride: 2 * 4,
+                arrayStride: 4 * 4,
                 stepMode: 'vertex',
                 attributes: [
                   {
                     // vertex positions
-                    shaderLocation: 2,
+                    shaderLocation: 0,
                     offset: 0,
                     format: 'float32x2',
                   },
@@ -98,18 +79,6 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             entryPoint: 'main',
         }
     })
-
-    const vertexBufferData = new Float32Array([
-         0.0, 0.0
-    ]);
-    
-    const spriteVertexBuffer = device.createBuffer({
-        size: vertexBufferData.byteLength,
-        usage: GPUBufferUsage.VERTEX,
-        mappedAtCreation: true,
-    });
-    new Float32Array(spriteVertexBuffer.getMappedRange()).set(vertexBufferData);
-    spriteVertexBuffer.unmap();
 
     const simParams = {
         r0: 0.05,
@@ -226,8 +195,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-            passEncoder.setVertexBuffer(1, spriteVertexBuffer);
-            passEncoder.draw(1, numParticles, 0, 0);
+            passEncoder.draw(numParticles);
             passEncoder.endPass();      
         }
         device.queue.submit([commandEncoder.finish()]); 
