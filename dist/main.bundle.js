@@ -10919,7 +10919,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/updateSprites.wgsl\r\nstruct Particle {\r\n    pos : vec2<f32>;\r\n    vel : vec2<f32>;\r\n};\r\n[[block]] struct SimParams {\r\n    r0 : f32;\r\n    dt : f32;\r\n    G: f32;\r\n    eps: f32;\r\n};\r\n[[block]] struct Particles {\r\n    particles : [[stride(16)]] array<Particle>;\r\n};\r\n[[binding(0), group(0)]] var<uniform> params : SimParams;\r\n[[binding(1), group(0)]] var<storage, read> particlesA : Particles;\r\n[[binding(2), group(0)]] var<storage, read_write> particlesB : Particles;\r\n\r\n[[stage(compute), workgroup_size(64)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n  // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py\r\n  var index : u32 = GlobalInvocationID.x;\r\n\r\n  var vPos = particlesA.particles[index].pos;\r\n  var vVel = particlesA.particles[index].vel;\r\n\r\n  var pos : vec2<f32>;\r\n\r\n  var distance : vec2<f32>;\r\n  var acc = vec2<f32>(0.0, 0.0);\r\n\r\n  for (var i : u32 = 0u; i < arrayLength(&particlesA.particles); i = i + 1u) {\r\n    if (i == index) {\r\n      continue;\r\n    }\r\n\r\n    pos = particlesA.particles[i].pos.xy;\r\n\r\n    distance = vPos - pos;\r\n\r\n    var x : f32= params.r0 / sqrt(dot(distance, distance) + params.eps);\r\n\r\n    // Molecular force\r\n    acc = acc + (params.eps * (pow(x, 13.0) - pow(x, 7.0)) * distance);\r\n\r\n    // Long-distance gravity force\r\n    acc = acc + (params.G * (pow(x, 3.0)) * distance);\r\n  }\r\n\r\n  vVel = vVel + (acc * params.dt);\r\n  vPos = vPos + (vVel * params.dt);\r\n\r\n  // Reflect if at boundary\r\n  if (vPos.x < -1.0) { // neg x\r\n      vPos.x = -1.0 - (vPos.x + 1.0);\r\n      vVel.x = vVel.x * -1.0;\r\n  }\r\n  if (vPos.x > 1.0) { // pos x\r\n      vPos.x = 1.0 - (vPos.x - 1.0);\r\n      vVel.x = vVel.x * -1.0;\r\n  }\r\n  if (vPos.y < -1.0) { // neg y\r\n      vPos.y = -1.0 - (vPos.y + 1.0);\r\n      vVel.y = vVel.y * -1.0;\r\n  }\r\n  if (vPos.y > 1.0) { // pos y\r\n      vPos.y = 1.0 - (vPos.y - 1.0);\r\n      vVel.y = vVel.y * -1.0;\r\n  }\r\n\r\n  // Write back\r\n  particlesB.particles[index].pos = vPos;\r\n  particlesB.particles[index].vel = vVel;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/updateSprites.wgsl\r\nstruct Particle {\r\n    pos : vec2<f32>;\r\n    vel : vec2<f32>;\r\n};\r\n[[block]] struct SimParams {\r\n    r0 : f32;\r\n    dt : f32;\r\n    G: f32;\r\n    eps: f32;\r\n};\r\n[[block]] struct Particles {\r\n    particles : [[stride(16)]] array<Particle>;\r\n};\r\n[[binding(0), group(0)]] var<uniform> params : SimParams;\r\n[[binding(1), group(0)]] var<storage, read> particlesA : Particles;\r\n[[binding(2), group(0)]] var<storage, read_write> particlesB : Particles;\r\n\r\n[[stage(compute), workgroup_size(256)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n  // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py\r\n  var index : u32 = GlobalInvocationID.x;\r\n\r\n  var vPos = particlesA.particles[index].pos;\r\n  var vVel = particlesA.particles[index].vel;\r\n\r\n  var pos : vec2<f32>;\r\n\r\n  var distance : vec2<f32>;\r\n  var acc = vec2<f32>(0.0, 0.0);\r\n\r\n  for (var i : u32 = 0u; i < arrayLength(&particlesA.particles); i = i + 1u) {\r\n    if (i == index) {\r\n      continue;\r\n    }\r\n\r\n    pos = particlesA.particles[i].pos.xy;\r\n\r\n    distance = vPos - pos;\r\n\r\n    var x : f32= params.r0 / sqrt(dot(distance, distance) + params.eps);\r\n\r\n    // Molecular force\r\n    acc = acc + (params.eps * (pow(x, 13.0) - pow(x, 7.0)) * distance);\r\n\r\n    // Long-distance gravity force\r\n    acc = acc + (params.G * (pow(x, 3.0)) * distance);\r\n  }\r\n\r\n  vVel = vVel + (acc * params.dt);\r\n  vPos = vPos + (vVel * params.dt);\r\n\r\n  // Reflect if at boundary\r\n  //if (vPos.x < -1.0) { // neg x\r\n     // vPos.x = -1.0 - (vPos.x + 1.0);\r\n     //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.x > 1.0) { // pos x\r\n      //vPos.x = 1.0 - (vPos.x - 1.0);\r\n      //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.y < -1.0) { // neg y\r\n      //vPos.y = -1.0 - (vPos.y + 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n  //}\r\n  //if (vPos.y > 1.0) { // pos y\r\n     // vPos.y = 1.0 - (vPos.y - 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n // }\r\n\r\n  // Write back\r\n  particlesB.particles[index].pos = vPos;\r\n  particlesB.particles[index].vel = vVel;\r\n}");
 
 /***/ }),
 
@@ -11122,8 +11122,9 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
     cpuContextIsConfigured = true;
     // Create Particles
-    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
-    var particlesData = new Float32Array(particlesBuffer);
+    //var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    //var particlesData = new Float32Array(particlesBuffer);
+    var particlesData = new Float32Array(numParticles * 4);
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -11168,10 +11169,17 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
+            /*var transferData = {
+                numParticles: numParticles,
+                simParams: simParams,
+                particlesBuffer: particlesBuffer,
+                startIndex: startIndex,
+                endIndex: endIndex
+            }*/
             var transferData = {
                 numParticles: numParticles,
                 simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
-                particlesBuffer: particlesBuffer,
+                particlesData: particlesData,
                 startIndex: startIndex,
                 endIndex: endIndex
             };
@@ -11180,7 +11188,7 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             // Update particlesData with received data
             workerList[i].onmessage = function (event) {
                 numWorkerFinished++;
-                //console.log("WORK COMPLETED");
+                particlesData = event.data;
                 if (numWorkerFinished == numThreads) {
                     // Erase all particles
                     context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
@@ -11546,6 +11554,11 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     currentTime = previousTime = performance.now();
     var totalFramePerSecond = 0;
     var frameCounter = 0;
+    // Variables for performance measurement (fps), specifically for test results
+    var currentFrame = 0;
+    var endFrame = 10000;
+    var totalFPS = 0;
+    var startTime = performance.now();
     let t = 0;
     function frame() {
         // Return if context is not configured;
@@ -11566,7 +11579,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(Math.ceil(numParticles / 64));
+            passEncoder.dispatch(256);
             passEncoder.endPass();
         }
         {
@@ -11584,6 +11597,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
         var framePerSecond = Math.round(1 / (elapsedTime / 1000));
         totalFramePerSecond += framePerSecond;
         frameCounter++;
+        //document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
         if (updatePerformance) {
             updatePerformance = false;
             let averageFramePerSecond = Math.round(totalFramePerSecond / frameCounter);
@@ -11593,6 +11607,15 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             setTimeout(() => {
                 updatePerformance = true;
             }, 50); // update FPS every 50ms
+        }
+        totalFPS += framePerSecond;
+        currentFrame++;
+        if (currentFrame == endFrame) {
+            console.log("Average FPS after " + endFrame + " frames: " + totalFPS / endFrame);
+            console.log("Duration Time: " + ((performance.now() - startTime) / 1000) + "seconds");
+            startTime = performance.now();
+            currentFrame = 0;
+            totalFPS = 0;
         }
         requestAnimationFrame(frame);
     }

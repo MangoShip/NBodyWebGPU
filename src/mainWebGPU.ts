@@ -167,6 +167,12 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
     var totalFramePerSecond = 0;
     var frameCounter = 0;
 
+    // Variables for performance measurement (fps), specifically for test results
+    var currentFrame = 0;
+    var endFrame = 10000;
+    var totalFPS = 0;
+    var startTime = performance.now();
+
     let t = 0;
     function frame() {
         // Return if context is not configured;
@@ -188,7 +194,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(Math.ceil(numParticles / 64));
+            passEncoder.dispatch(256);
             passEncoder.endPass();
         }
         {
@@ -208,6 +214,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
         totalFramePerSecond += framePerSecond;
         frameCounter++;
             
+        //document.getElementById("fps")!.innerHTML = `FPS:  ${framePerSecond}`;
         if(updatePerformance) {
             updatePerformance = false;
 
@@ -221,6 +228,19 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             setTimeout(() => {
                 updatePerformance = true;
             }, 50); // update FPS every 50ms
+        }
+
+        totalFPS += framePerSecond;
+        currentFrame++;
+
+        if(currentFrame == endFrame) {
+            console.log("Average FPS after " + endFrame + " frames: " + totalFPS / endFrame);
+            console.log("Duration Time: " + ((performance.now() - startTime)/1000) + "seconds");
+
+            startTime = performance.now();
+
+            currentFrame = 0;
+            totalFPS = 0;
         }
         requestAnimationFrame(frame);
     }

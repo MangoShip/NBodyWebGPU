@@ -16,7 +16,7 @@ struct Particle {
 [[binding(1), group(0)]] var<storage, read> particlesA : Particles;
 [[binding(2), group(0)]] var<storage, read_write> particlesB : Particles;
 
-[[stage(compute), workgroup_size(64)]]
+[[stage(compute), workgroup_size(256)]]
 fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
   // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py
   var index : u32 = GlobalInvocationID.x;
@@ -51,22 +51,22 @@ fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
   vPos = vPos + (vVel * params.dt);
 
   // Reflect if at boundary
-  if (vPos.x < -1.0) { // neg x
-      vPos.x = -1.0 - (vPos.x + 1.0);
-      vVel.x = vVel.x * -1.0;
-  }
-  if (vPos.x > 1.0) { // pos x
-      vPos.x = 1.0 - (vPos.x - 1.0);
-      vVel.x = vVel.x * -1.0;
-  }
-  if (vPos.y < -1.0) { // neg y
-      vPos.y = -1.0 - (vPos.y + 1.0);
-      vVel.y = vVel.y * -1.0;
-  }
-  if (vPos.y > 1.0) { // pos y
-      vPos.y = 1.0 - (vPos.y - 1.0);
-      vVel.y = vVel.y * -1.0;
-  }
+  //if (vPos.x < -1.0) { // neg x
+     // vPos.x = -1.0 - (vPos.x + 1.0);
+     //vVel.x = vVel.x * -1.0;
+  //}
+  //if (vPos.x > 1.0) { // pos x
+      //vPos.x = 1.0 - (vPos.x - 1.0);
+      //vVel.x = vVel.x * -1.0;
+  //}
+  //if (vPos.y < -1.0) { // neg y
+      //vPos.y = -1.0 - (vPos.y + 1.0);
+      //vVel.y = vVel.y * -1.0;
+  //}
+  //if (vPos.y > 1.0) { // pos y
+     // vPos.y = 1.0 - (vPos.y - 1.0);
+      //vVel.y = vVel.y * -1.0;
+ // }
 
   // Write back
   particlesB.particles[index].pos = vPos;
