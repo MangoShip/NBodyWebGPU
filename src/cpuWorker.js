@@ -8,7 +8,6 @@ self.onmessage = function(event) {
     var simParams = event.data.simParams;
 
     for (let i = event.data.startIndex; i < event.data.endIndex; ++i) {
-        //Atomics.load(particlesData, 4 * i + 0)
         var vPos = [particlesData[4 * i + 0], particlesData[4 * i + 1]];
         var vVel = [particlesData[4 * i + 2], particlesData[4 * i + 3]];
 

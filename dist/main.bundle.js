@@ -11122,9 +11122,8 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
     context.fillRect(0, 0, canvasCPU.width, canvasCPU.height);
     cpuContextIsConfigured = true;
     // Create Particles
-    //var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
-    //var particlesData = new Float32Array(particlesBuffer);
-    var particlesData = new Float32Array(numParticles * 4);
+    var particlesBuffer = new SharedArrayBuffer(Float32Array.BYTES_PER_ELEMENT * (numParticles * 4));
+    var particlesData = new Float32Array(particlesBuffer);
     for (let i = 0; i < numParticles; ++i) {
         particlesData[4 * i + 0] = 2 * (Math.random() - 0.5); // posX
         particlesData[4 * i + 1] = 2 * (Math.random() - 0.5); // posY
@@ -11169,17 +11168,10 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             var chunk_size = Math.floor((+numParticles + (+numThreads - 1)) / +numThreads);
             var startIndex = chunk_size * i;
             var endIndex = Math.min(startIndex + chunk_size, +numParticles);
-            /*var transferData = {
-                numParticles: numParticles,
-                simParams: simParams,
-                particlesBuffer: particlesBuffer,
-                startIndex: startIndex,
-                endIndex: endIndex
-            }*/
             var transferData = {
                 numParticles: numParticles,
                 simParams: _main__WEBPACK_IMPORTED_MODULE_0__.simParams,
-                particlesData: particlesData,
+                particlesBuffer: particlesBuffer,
                 startIndex: startIndex,
                 endIndex: endIndex
             };
@@ -11188,7 +11180,6 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             // Update particlesData with received data
             workerList[i].onmessage = function (event) {
                 numWorkerFinished++;
-                particlesData = event.data;
                 if (numWorkerFinished == numThreads) {
                     // Erase all particles
                     context.clearRect(0, 0, canvasCPU.width, canvasCPU.height);
