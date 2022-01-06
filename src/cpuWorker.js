@@ -4,8 +4,7 @@ const dotProduct = (a, b) => a.map((x, i) => a[i] * b[i]).reduce((m, n) => m + n
 // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py
 self.onmessage = function(event) {
     // Perform computation at specific start and end index
-    //var particlesData = new Float32Array(event.data.particlesBuffer);
-    var particlesData = event.data.particlesData;
+    var particlesData = new Float32Array(event.data.particlesBuffer);
     var simParams = event.data.simParams;
 
     for (let i = event.data.startIndex; i < event.data.endIndex; ++i) {
