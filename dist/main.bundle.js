@@ -11179,6 +11179,7 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             workerList[i].postMessage(transferData);
             // Update particlesData with received data
             workerList[i].onmessage = function (event) {
+                console.log(particlesData);
                 numWorkerFinished++;
                 if (numWorkerFinished == numThreads) {
                     // Erase all particles

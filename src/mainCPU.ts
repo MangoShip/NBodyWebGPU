@@ -90,6 +90,7 @@ export const CreateParticlesCPU = async (numParticles=150, numThreads=1) => {
 
             // Update particlesData with received data
             workerList[i].onmessage = function(event) {
+                console.log(particlesData);
                 numWorkerFinished++;
 
                 if(numWorkerFinished == numThreads) {
