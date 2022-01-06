@@ -80,13 +80,6 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
         }
     })
 
-    const simParams = {
-        r0: 0.05,
-        dt: 0.005000,
-        G: -10,
-        eps: 0.001,
-    };
-
     const simParamBufferSize = 4 * Float32Array.BYTES_PER_ELEMENT;
     const simParamBuffer = device.createBuffer({
         size: simParamBufferSize,

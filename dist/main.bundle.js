@@ -11179,7 +11179,6 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
             workerList[i].postMessage(transferData);
             // Update particlesData with received data
             workerList[i].onmessage = function (event) {
-                console.log(particlesData);
                 numWorkerFinished++;
                 if (numWorkerFinished == numThreads) {
                     // Erase all particles
@@ -11393,8 +11392,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _helper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./helper */ "./src/helper.ts");
-/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
-/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
+/* harmony import */ var _main__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./main */ "./src/main.ts");
+/* harmony import */ var _sprite_wgsl__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./sprite.wgsl */ "./src/sprite.wgsl");
+/* harmony import */ var _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./updateSprite.wgsl */ "./src/updateSprite.wgsl");
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -11404,6 +11404,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -11431,7 +11432,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     });
     gpuContextIsConfigured = true;
     // Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/main.ts
-    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_2__.default });
+    const spriteShaderModule = device.createShaderModule({ code: _sprite_wgsl__WEBPACK_IMPORTED_MODULE_3__.default });
     const renderPipeline = device.createRenderPipeline({
         vertex: {
             module: spriteShaderModule,
@@ -11468,17 +11469,11 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     const computePipeline = device.createComputePipeline({
         compute: {
             module: device.createShaderModule({
-                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_3__.default,
+                code: _updateSprite_wgsl__WEBPACK_IMPORTED_MODULE_4__.default,
             }),
             entryPoint: 'main',
         }
     });
-    const simParams = {
-        r0: 0.05,
-        dt: 0.005000,
-        G: -10,
-        eps: 0.001,
-    };
     const simParamBufferSize = 4 * Float32Array.BYTES_PER_ELEMENT;
     const simParamBuffer = device.createBuffer({
         size: simParamBufferSize,
@@ -11486,10 +11481,10 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     });
     function updateSimParams() {
         device.queue.writeBuffer(simParamBuffer, 0, new Float32Array([
-            simParams.r0,
-            simParams.dt,
-            simParams.G,
-            simParams.eps
+            _main__WEBPACK_IMPORTED_MODULE_2__.simParams.r0,
+            _main__WEBPACK_IMPORTED_MODULE_2__.simParams.dt,
+            _main__WEBPACK_IMPORTED_MODULE_2__.simParams.G,
+            _main__WEBPACK_IMPORTED_MODULE_2__.simParams.eps
         ]));
     }
     updateSimParams();
