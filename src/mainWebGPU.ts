@@ -20,9 +20,11 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
     canvasCPU.style.display = "none";
     canvasWebGPU.style.display = "block";
   
-    const adapter = await navigator.gpu.requestAdapter() as GPUAdapter;       
+    const adapter = await navigator.gpu.requestAdapter() as GPUAdapter; 
+    console.log(navigator.gpu);      
+    console.log(adapter);
+    console.log(adapter.requestDevice);
     const device = await adapter.requestDevice() as GPUDevice;
-    //const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
 
     const context = canvasWebGPU.getContext('webgpu');
 

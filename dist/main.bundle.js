@@ -11422,8 +11422,10 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     canvasCPU.style.display = "none";
     canvasWebGPU.style.display = "block";
     const adapter = yield navigator.gpu.requestAdapter();
+    console.log(navigator.gpu);
+    console.log(adapter);
+    console.log(adapter.requestDevice);
     const device = yield adapter.requestDevice();
-    //const context = canvasWebGPU.getContext('gpupresent') as GPUPresentationContext;
     const context = canvasWebGPU.getContext('webgpu');
     const format = 'bgra8unorm';
     context.configure({
