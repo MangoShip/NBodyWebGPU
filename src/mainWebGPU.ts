@@ -10,10 +10,12 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
     const checkgpu = CheckWebGPU();
     if(checkgpu.includes('Your current browser does not support WebGPU!')){
         console.log(checkgpu);
+        $('#currentType').text('WebGPU Not Supported!');
         throw('Your current browser does not support WebGPU!');
+        
     }
 
-    console.log("TEST4");
+    console.log("TEST5");
 
     const canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement; 
     const canvasCPU = document.getElementById('canvasCPU');
@@ -23,6 +25,13 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
     canvasWebGPU.style.display = "block";
   
     const adapter = await navigator.gpu.requestAdapter() as GPUAdapter; 
+
+    if(!adapter) {
+        console.error('No WebGPU adapters found');
+        $('#currentType').text('No WebGPU adapters found');
+        return false;
+    }
+
     const device = await adapter.requestDevice() as GPUDevice;
 
     const context = canvasWebGPU.getContext('webgpu') as GPUCanvasContext;

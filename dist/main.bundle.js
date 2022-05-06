@@ -11414,15 +11414,21 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     const checkgpu = (0,_helper__WEBPACK_IMPORTED_MODULE_1__.CheckWebGPU)();
     if (checkgpu.includes('Your current browser does not support WebGPU!')) {
         console.log(checkgpu);
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentType').text('WebGPU Not Supported!');
         throw ('Your current browser does not support WebGPU!');
     }
-    console.log("TEST4");
+    console.log("TEST5");
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU');
     // Switch canvas
     canvasCPU.style.display = "none";
     canvasWebGPU.style.display = "block";
     const adapter = yield navigator.gpu.requestAdapter();
+    if (!adapter) {
+        console.error('No WebGPU adapters found');
+        jquery__WEBPACK_IMPORTED_MODULE_0___default()('#currentType').text('No WebGPU adapters found');
+        return false;
+    }
     const device = yield adapter.requestDevice();
     const context = canvasWebGPU.getContext('webgpu');
     const format = 'bgra8unorm';
