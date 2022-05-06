@@ -11416,7 +11416,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
         console.log(checkgpu);
         throw ('Your current browser does not support WebGPU!');
     }
-    console.log("TEST3");
+    console.log("TEST4");
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU');
     // Switch canvas
