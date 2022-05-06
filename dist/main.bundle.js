@@ -11154,7 +11154,7 @@ const CreateParticlesCPU = (numParticles = 150, numThreads = 1) => __awaiter(voi
     var workerList = [];
     // Initialize workers
     for (let j = 0; j < numThreads; ++j) {
-        var worker = new Worker('./cpuWorker.js');
+        var worker = new Worker('./src/cpuWorker.js');
         workerList[j] = worker;
     }
     // Update Particles
@@ -11305,7 +11305,7 @@ const CreateParticlesCPUQuad = (numParticles = 150, thetaValue = 1) => __awaiter
     var totalFPS = 0;
     var startTime = performance.now();
     // Initialize a worker
-    var worker = new Worker('./cpuQuadWorker.js');
+    var worker = new Worker('./src/cpuQuadWorker.js');
     // Update Particles
     function frame() {
         // Return if context is not configured
