@@ -59,7 +59,7 @@ export const CreateParticlesCPU = async (numParticles=150, numThreads=1) => {
 
     // Initialize workers
     for (let j = 0; j < numThreads; ++j) {
-        var worker = new Worker('../src/cpuWorker.js');
+        var worker = new Worker('./cpuWorker.js');
         workerList[j] = worker;
     }
 

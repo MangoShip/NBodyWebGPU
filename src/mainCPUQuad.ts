@@ -55,7 +55,7 @@ export const CreateParticlesCPUQuad = async (numParticles=150, thetaValue=1) => 
     var startTime = performance.now();
 
     // Initialize a worker
-    var worker = new Worker('../src/cpuQuadWorker.js');
+    var worker = new Worker('./cpuQuadWorker.js');
 
     // Update Particles
     function frame() {
