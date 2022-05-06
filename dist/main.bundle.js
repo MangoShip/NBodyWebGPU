@@ -11568,7 +11568,8 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
+            //passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
+            passEncoder.dispatch(Math.ceil(numParticles / 64));
             //passEncoder.endPass();
             passEncoder.end();
         }

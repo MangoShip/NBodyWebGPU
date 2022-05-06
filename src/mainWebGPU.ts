@@ -190,7 +190,8 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
+            //passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
+            passEncoder.dispatch(Math.ceil(numParticles / 64));
             //passEncoder.endPass();
             passEncoder.end();
         }
