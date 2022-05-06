@@ -13,6 +13,8 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
         throw('Your current browser does not support WebGPU!');
     }
 
+    console.log("TEST");
+
     const canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement; 
     const canvasCPU = document.getElementById('canvasCPU');
 
