@@ -11416,7 +11416,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
         console.log(checkgpu);
         throw ('Your current browser does not support WebGPU!');
     }
-    console.log("TEST");
+    console.log("TEST2");
     const canvasWebGPU = document.getElementById('canvasWebGPU');
     const canvasCPU = document.getElementById('canvasCPU');
     // Switch canvas
@@ -11568,7 +11568,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64), 0, 0);
+            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64));
             //passEncoder.endPass();
             passEncoder.end();
         }
