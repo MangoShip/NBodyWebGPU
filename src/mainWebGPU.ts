@@ -13,7 +13,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
         throw('Your current browser does not support WebGPU!');
     }
 
-    console.log("TEST3");
+    console.log("TEST4");
 
     const canvasWebGPU = document.getElementById('canvasWebGPU') as HTMLCanvasElement; 
     const canvasCPU = document.getElementById('canvasCPU');
@@ -47,7 +47,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
               {
                 // vertex buffer
                 arrayStride: 4 * 4,
-                stepMode: 'vertex',
+                stepMode: 'instance',
                 attributes: [
                   {
                     // vertex positions
@@ -69,7 +69,7 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             ],
           },
           primitive: {
-            topology: 'point-list'
+            topology: 'triangle-list'
           },
     })
 
