@@ -4,16 +4,16 @@ struct Particle {
     vel : vec2<f32>;
 };
 
-@block struct SimParams {
+struct SimParams {
     r0 : f32;
     dt : f32;
     G: f32;
     eps: f32;
 };
-@block struct Particles {
-    particles : @stride(16) array<Particle>;
+struct Particles {
+    particles : array<Particle>;
 };
-@binding(0), group(0) var<uniform> params : SimParams;
+@binding(0) @group(0) var<uniform> params : SimParams;
 @binding(1) @group(0) var<storage, read_write> particlesA : Particles;
 @binding(2) @group(0) var<storage, read_write> particlesB : Particles;
 
