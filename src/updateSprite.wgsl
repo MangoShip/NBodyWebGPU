@@ -12,12 +12,12 @@ struct Particle {
 [[block]] struct Particles {
     particles : [[stride(16)]] array<Particle>;
 };
-[[binding(0), group(0)]] var<uniform> params : SimParams;
-[[binding(1), group(0)]] var<storage, read> particlesA : Particles;
-[[binding(2), group(0)]] var<storage, read_write> particlesB : Particles;
+@binding(0), group(0) var<uniform> params : SimParams;
+@binding(1) @group(0) var<storage, read_write> particlesA : Particles;
+@binding(2) @group(0) var<storage, read_write> particlesB : Particles;
 
-[[stage(compute), workgroup_size(256)]]
-fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
+@stage(compute) @workgroup_size(256)
+fn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {
   // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py
   var index : u32 = GlobalInvocationID.x;
 

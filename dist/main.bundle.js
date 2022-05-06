@@ -10904,7 +10904,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("[[stage(vertex)]]\r\nfn vert_main([[location(0)]] particlePos : vec2<f32>) -> [[builtin(position)]] vec4<f32> {                            \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n\r\n}\r\n\r\n[[stage(fragment)]] \r\nfn frag_main() -> [[location(0)]] vec4<f32> {\r\n        return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Renders a particle at its position\r\n@stage(vertex)\r\nfn vert_main(@location(0) particlePos : vec2<f32>) -> @builtin(position) vec4<f32> {  \r\n    return vec4<f32>(particlePos, 0.0, 1.0);\r\n}\r\n\r\n// Determines color of each object\r\n@stage(fragment)\r\nfn frag_main() -> @location(0) vec4<f32> {\r\n    return vec4<f32>(1.0, 1.0, 1.0, 1.0);\r\n}");
 
 /***/ }),
 
@@ -10919,7 +10919,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/updateSprites.wgsl\r\nstruct Particle {\r\n    pos : vec2<f32>;\r\n    vel : vec2<f32>;\r\n};\r\n[[block]] struct SimParams {\r\n    r0 : f32;\r\n    dt : f32;\r\n    G: f32;\r\n    eps: f32;\r\n};\r\n[[block]] struct Particles {\r\n    particles : [[stride(16)]] array<Particle>;\r\n};\r\n[[binding(0), group(0)]] var<uniform> params : SimParams;\r\n[[binding(1), group(0)]] var<storage, read> particlesA : Particles;\r\n[[binding(2), group(0)]] var<storage, read_write> particlesB : Particles;\r\n\r\n[[stage(compute), workgroup_size(256)]]\r\nfn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {\r\n  // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py\r\n  var index : u32 = GlobalInvocationID.x;\r\n\r\n  var vPos = particlesA.particles[index].pos;\r\n  var vVel = particlesA.particles[index].vel;\r\n\r\n  var pos : vec2<f32>;\r\n\r\n  var distance : vec2<f32>;\r\n  var acc = vec2<f32>(0.0, 0.0);\r\n\r\n  for (var i : u32 = 0u; i < arrayLength(&particlesA.particles); i = i + 1u) {\r\n    if (i == index) {\r\n      continue;\r\n    }\r\n\r\n    pos = particlesA.particles[i].pos.xy;\r\n\r\n    distance = vPos - pos;\r\n\r\n    var x : f32= params.r0 / sqrt(dot(distance, distance) + params.eps);\r\n\r\n    // Molecular force\r\n    acc = acc + (params.eps * (pow(x, 13.0) - pow(x, 7.0)) * distance);\r\n\r\n    // Long-distance gravity force\r\n    acc = acc + (params.G * (pow(x, 3.0)) * distance);\r\n  }\r\n\r\n  vVel = vVel + (acc * params.dt);\r\n  vPos = vPos + (vVel * params.dt);\r\n\r\n  // Reflect if at boundary\r\n  //if (vPos.x < -1.0) { // neg x\r\n     // vPos.x = -1.0 - (vPos.x + 1.0);\r\n     //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.x > 1.0) { // pos x\r\n      //vPos.x = 1.0 - (vPos.x - 1.0);\r\n      //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.y < -1.0) { // neg y\r\n      //vPos.y = -1.0 - (vPos.y + 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n  //}\r\n  //if (vPos.y > 1.0) { // pos y\r\n     // vPos.y = 1.0 - (vPos.y - 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n // }\r\n\r\n  // Write back\r\n  particlesB.particles[index].pos = vPos;\r\n  particlesB.particles[index].vel = vVel;\r\n}");
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("// Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/updateSprites.wgsl\r\nstruct Particle {\r\n    pos : vec2<f32>;\r\n    vel : vec2<f32>;\r\n};\r\n[[block]] struct SimParams {\r\n    r0 : f32;\r\n    dt : f32;\r\n    G: f32;\r\n    eps: f32;\r\n};\r\n[[block]] struct Particles {\r\n    particles : [[stride(16)]] array<Particle>;\r\n};\r\n@binding(0), group(0) var<uniform> params : SimParams;\r\n@binding(1) @group(0) var<storage, read_write> particlesA : Particles;\r\n@binding(2) @group(0) var<storage, read_write> particlesB : Particles;\r\n\r\n@stage(compute) @workgroup_size(256)\r\nfn main(@builtin(global_invocation_id) GlobalInvocationID : vec3<u32>) {\r\n  // Computation Source: https://github.com/taichi-dev/taichi/blob/3b81d2d30f5e8a0016d0dc01f9db2fef9e2571c4/examples/simulation/nbody_oscillator.py\r\n  var index : u32 = GlobalInvocationID.x;\r\n\r\n  var vPos = particlesA.particles[index].pos;\r\n  var vVel = particlesA.particles[index].vel;\r\n\r\n  var pos : vec2<f32>;\r\n\r\n  var distance : vec2<f32>;\r\n  var acc = vec2<f32>(0.0, 0.0);\r\n\r\n  for (var i : u32 = 0u; i < arrayLength(&particlesA.particles); i = i + 1u) {\r\n    if (i == index) {\r\n      continue;\r\n    }\r\n\r\n    pos = particlesA.particles[i].pos.xy;\r\n\r\n    distance = vPos - pos;\r\n\r\n    var x : f32= params.r0 / sqrt(dot(distance, distance) + params.eps);\r\n\r\n    // Molecular force\r\n    acc = acc + (params.eps * (pow(x, 13.0) - pow(x, 7.0)) * distance);\r\n\r\n    // Long-distance gravity force\r\n    acc = acc + (params.G * (pow(x, 3.0)) * distance);\r\n  }\r\n\r\n  vVel = vVel + (acc * params.dt);\r\n  vPos = vPos + (vVel * params.dt);\r\n\r\n  // Reflect if at boundary\r\n  //if (vPos.x < -1.0) { // neg x\r\n     // vPos.x = -1.0 - (vPos.x + 1.0);\r\n     //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.x > 1.0) { // pos x\r\n      //vPos.x = 1.0 - (vPos.x - 1.0);\r\n      //vVel.x = vVel.x * -1.0;\r\n  //}\r\n  //if (vPos.y < -1.0) { // neg y\r\n      //vPos.y = -1.0 - (vPos.y + 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n  //}\r\n  //if (vPos.y > 1.0) { // pos y\r\n     // vPos.y = 1.0 - (vPos.y - 1.0);\r\n      //vVel.y = vVel.y * -1.0;\r\n // }\r\n\r\n  // Write back\r\n  particlesB.particles[index].pos = vPos;\r\n  particlesB.particles[index].vel = vVel;\r\n}");
 
 /***/ }),
 
@@ -11428,6 +11428,7 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
     context.configure({
         device: device,
         format: format,
+        compositingAlphaMode: "premultiplied"
     });
     gpuContextIsConfigured = true;
     // Code Source: https://github.com/austinEng/webgpu-samples/blob/main/src/sample/computeBoids/main.ts
@@ -11555,8 +11556,9 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             colorAttachments: [
                 {
                     view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                    storeOp: 'store'
+                    clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+                    loadOp: "clear",
+                    storeOp: "store"
                 }
             ]
         };
@@ -11565,15 +11567,16 @@ const CreateParticlesWebGPU = (numParticles = 1000) => __awaiter(void 0, void 0,
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(256);
-            passEncoder.endPass();
+            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64), 0, 0);
+            //passEncoder.endPass();
+            passEncoder.end();
         }
         {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t + 1) % 2]);
-            passEncoder.draw(numParticles);
-            passEncoder.endPass();
+            passEncoder.draw(6, numParticles, 0, 0);
+            passEncoder.end();
         }
         device.queue.submit([commandEncoder.finish()]);
         ++t;

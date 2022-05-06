@@ -23,13 +23,14 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
     const adapter = await navigator.gpu.requestAdapter() as GPUAdapter; 
     const device = await adapter.requestDevice() as GPUDevice;
 
-    const context = canvasWebGPU.getContext('webgpu');
+    const context = canvasWebGPU.getContext('webgpu') as GPUCanvasContext;
 
     const format = 'bgra8unorm';
 
     context.configure({
         device: device,
         format: format,
+        compositingAlphaMode: "premultiplied"
     });
 
     gpuContextIsConfigured = true;
@@ -175,8 +176,9 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             colorAttachments: [
                 {
                     view: textureView,
-                    loadValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }, //background color
-                    storeOp: 'store'
+                    clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
+                    loadOp: "clear", //background color
+                    storeOp: "store"
                 }
             ]
         }
@@ -186,15 +188,16 @@ export const CreateParticlesWebGPU = async (numParticles=1000) => {
             const passEncoder = commandEncoder.beginComputePass();
             passEncoder.setPipeline(computePipeline);
             passEncoder.setBindGroup(0, particleBindGroups[t % 2]);
-            passEncoder.dispatch(256);
-            passEncoder.endPass();
+            passEncoder.dispatchWorkgroups(Math.ceil(numParticles / 64), 0, 0);
+            //passEncoder.endPass();
+            passEncoder.end();
         }
         {
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(renderPipeline);
             passEncoder.setVertexBuffer(0, particleBuffers[(t+1)%2]);
-            passEncoder.draw(numParticles);
-            passEncoder.endPass();      
+            passEncoder.draw(6, numParticles, 0, 0);
+            passEncoder.end();    
         }
         device.queue.submit([commandEncoder.finish()]); 
         ++t;
